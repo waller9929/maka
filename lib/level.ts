@@ -7,7 +7,7 @@ export const LEVELS = [
 ] as const;
 
 export function getLevel(points: number) {
-  let current = LEVELS[0];
+  let current: (typeof LEVELS)[number] = LEVELS[0];
   for (const lvl of LEVELS) {
     if (points >= lvl.min) current = lvl;
   }
