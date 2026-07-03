@@ -23,6 +23,12 @@ export default async function HomePage({
 
   const { data, error } = await query;
 
+  if (error) {
+    console.error("[places query error]", JSON.stringify(error, null, 2));
+    console.error("[env check] SUPABASE_URL =", process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.error("[env check] ANON_KEY length =", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length ?? 0);
+  }
+
   const places: Place[] = (data ?? []).map((p: any) => ({
     ...p,
     recommender_name: p.profiles?.name ?? null,
