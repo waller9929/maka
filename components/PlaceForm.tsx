@@ -17,10 +17,10 @@ export default function PlaceForm() {
 
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
-  const [category, setCategory] = useState(CATEGORIES[0]);
+  const [category, setCategory] = useState<string>(CATEGORIES[0]);
   const [rating, setRating] = useState(5);
   const [valueRating, setValueRating] = useState(5);
-  const [priceRange, setPriceRange] = useState(PRICE_RANGES[0]);
+  const [priceRange, setPriceRange] = useState<string>(PRICE_RANGES[0]);
   const [visitDate, setVisitDate] = useState("");
   const [timeTags, setTimeTags] = useState<string[]>([]);
   const [companionTags, setCompanionTags] = useState<string[]>([]);
