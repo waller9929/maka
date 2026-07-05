@@ -302,6 +302,37 @@ $$;
 
 grant execute on function public.get_meal_plan(text) to anon, authenticated;
 
+-- 10. 협찬 광고 (홈페이지 필터바 위에 한 자리만 노출되는 배너,
+--     게재 기간이 지나면 자동으로 노출에서 빠집니다)
+create table if not exists public.sponsored_ads (
+  id uuid primary key default gen_random_uuid(),
+  business_name text not null,
+  message text,
+  image_url text,
+  link_url text,
+  starts_at date not null default current_date,
+  ends_at date,
+  created_at timestamptz not null default now()
+);
+
+alter table public.sponsored_ads enable row level security;
+
+create policy "sponsored ads are viewable by everyone"
+  on public.sponsored_ads for select
+  using (true);
+
+create policy "only admins can insert sponsored ads"
+  on public.sponsored_ads for insert
+  with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
+
+create policy "only admins can update sponsored ads"
+  on public.sponsored_ads for update
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
+
+create policy "only admins can delete sponsored ads"
+  on public.sponsored_ads for delete
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
+
 -- ==========================================================
 -- Storage 버킷 (사진 / 메뉴판 업로드)
 -- SQL Editor 에서 실행하거나, 대시보드 Storage 메뉴에서

@@ -7,6 +7,7 @@ const ITEMS = [
   { href: "/admin/bulk-upload", label: "Bulk upload" },
   { href: "/admin/settings", label: "Site settings" },
   { href: "/admin/places", label: "Manage places" },
+  { href: "/admin/ads", label: "Ads" },
   { href: "/admin/visitors", label: "Visitors" },
 ];
 

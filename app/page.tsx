@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import FilterBar from "@/components/FilterBar";
 import PlaceCard, { type Place } from "@/components/PlaceCard";
 import Top10List, { rankTop10 } from "@/components/Top10List";
+import SponsoredBanner, { pickActiveAd } from "@/components/SponsoredBanner";
 import { detectRegion, detectCity } from "@/lib/region";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +48,14 @@ export default async function HomePage({
     .single();
 
   const homeTitle = settings?.home_title ?? "MAKA - Work Hard, Eat Well";
+
+  const today = new Date().toISOString().slice(0, 10);
+  const { data: adsData } = await supabase
+    .from("sponsored_ads")
+    .select("id, business_name, message, image_url, link_url, starts_at, ends_at")
+    .lte("starts_at", today)
+    .or(`ends_at.is.null,ends_at.gte.${today}`);
+  const activeAd = pickActiveAd(adsData ?? []);
 
   // Site visit counter + per-visit log (day/user breakdown for the admin
   // "Visitors" dashboard). Awaited (rather than fire-and-forget) since
@@ -132,6 +141,8 @@ export default async function HomePage({
           </div>
         </div>
       )}
+
+      {activeAd && <SponsoredBanner ad={activeAd} />}
 
       <FilterBar />
 

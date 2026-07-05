@@ -74,7 +74,8 @@ MAKA는 Next.js + Supabase(로그인·DB·사진저장) + Vercel(배포) + Googl
 6. Supabase SQL Editor에서 `supabase/migration_v6.sql` 내용을 전체 실행합니다. (카테고리 목록 변경 — 기존 "Cafe/Dessert" 데이터를 "Cafe"로 이전)
 7. Supabase SQL Editor에서 `supabase/migration_v7.sql` 내용을 전체 실행합니다. (숨겨진 "월 식단표" 페이지용 테이블/함수 추가, 기본 비밀번호 `maka2026`)
 8. Supabase SQL Editor에서 `supabase/migration_v8.sql` 내용을 전체 실행합니다. (방문 로그 테이블 추가 — 관리자 "Visitors" 대시보드용)
-9. GitHub Desktop으로 새 코드를 push 하면 Vercel이 자동으로 재배포합니다.
+9. Supabase SQL Editor에서 `supabase/migration_v9.sql` 내용을 전체 실행합니다. (협찬 광고 테이블 추가 — 관리자 "Ads" 메뉴용)
+10. GitHub Desktop으로 새 코드를 push 하면 Vercel이 자동으로 재배포합니다.
 
 ## 이번 업데이트로 추가된 기능
 
@@ -97,6 +98,7 @@ MAKA는 Next.js + Supabase(로그인·DB·사진저장) + Vercel(배포) + Googl
 - 모든 페이지 맨 아래에 Contact 정보(waller9929@gmail.com)를 표시하는 Footer가 추가되었습니다.
 - 관리자 "Manage places" 화면에서 이름/위치/카테고리/식당유형과 함께 평점(rating)도 목록에서 바로 수정할 수 있습니다.
 - Value/Standard/Premium 식당유형 배지 색상을 좀 더 눈에 띄는 파스텔톤(초록/하늘색/핑크)으로 바꿨습니다.
+- 관리자 메뉴에 "Ads"가 추가되어, 협찬(광고) 업체명·이미지·링크·게재 기간을 등록/삭제할 수 있습니다. 등록된 광고 중 게재 기간에 해당하는 것 하나가 메인 페이지 필터바 바로 위에 "Sponsored" 표시와 함께 노출되고, 여러 개가 겹치면 방문할 때마다 무작위로 하나가 보여집니다. 게재 기간이 지나면 자동으로 노출에서 빠집니다.
 
 ## 대량 맛집 업로드 (구글 지도 저장 리스트 가져오기)
 
