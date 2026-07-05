@@ -28,6 +28,7 @@ export type PlaceDetailData = {
   created_by: string;
   created_at: string;
   recommender_name: string | null;
+  view_count?: number;
 };
 
 export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
@@ -174,6 +175,7 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
         <p className="text-xs text-brand-gray mt-3">
           {place.recommender_name ? `Added by ${place.recommender_name}` : ""}
           {place.created_at ? ` · Posted ${new Date(place.created_at).toLocaleDateString()}` : ""}
+          {place.view_count !== undefined ? ` · ${place.view_count} views` : ""}
         </p>
 
         {place.google_maps_url && (

@@ -16,50 +16,55 @@ export default function AdminPlacesManager({ initialPlaces }: { initialPlaces: P
   const supabase = createClient();
   const router = useRouter();
   const [places, setPlaces] = useState(initialPlaces);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [deletingAll, setDeletingAll] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleDeleteOne(id: string, name: string) {
-    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
-    setDeletingId(id);
-    setError("");
-    const { error: deleteError } = await supabase.from("places").delete().eq("id", id);
-    setDeletingId(null);
-    if (deleteError) {
-      setError(deleteError.message);
-      return;
-    }
-    setPlaces((prev) => prev.filter((p) => p.id !== id));
-    router.refresh();
+  const allSelected = places.length > 0 && selected.size === places.length;
+
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   }
 
-  async function handleDeleteAll() {
-    if (places.length === 0) return;
-    if (!confirm(`Delete ALL ${places.length} places? This cannot be undone.`)) return;
-    if (!confirm("Are you absolutely sure? This will permanently delete every place on MAKA.")) return;
-    setDeletingAll(true);
+  function toggleAll() {
+    setSelected(allSelected ? new Set() : new Set(places.map((p) => p.id)));
+  }
+
+  async function handleDeleteSelected() {
+    const ids = Array.from(selected);
+    if (ids.length === 0) return;
+    if (!confirm(`Delete ${ids.length} selected place(s)? This cannot be undone.`)) return;
+    setDeleting(true);
     setError("");
-    const { error: deleteError } = await supabase.from("places").delete().not("id", "is", null);
-    setDeletingAll(false);
+    const { error: deleteError } = await supabase.from("places").delete().in("id", ids);
+    setDeleting(false);
     if (deleteError) {
       setError(deleteError.message);
       return;
     }
-    setPlaces([]);
+    setPlaces((prev) => prev.filter((p) => !selected.has(p.id)));
+    setSelected(new Set());
     router.refresh();
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-brand-gray">{places.length} places</p>
+        <label className="flex items-center gap-2 text-sm text-brand-gray">
+          <input type="checkbox" checked={allSelected} onChange={toggleAll} />
+          {selected.size > 0 ? `${selected.size} of ${places.length} selected` : `${places.length} places`}
+        </label>
         <button
-          onClick={handleDeleteAll}
-          disabled={deletingAll || places.length === 0}
+          onClick={handleDeleteSelected}
+          disabled={deleting || selected.size === 0}
           className="btn-outline px-3 py-1.5 text-sm text-red-600"
         >
-          {deletingAll ? "Deleting..." : "Delete all"}
+          {deleting ? "Deleting..." : `Delete selected (${selected.size})`}
         </button>
       </div>
 
@@ -70,24 +75,22 @@ export default function AdminPlacesManager({ initialPlaces }: { initialPlaces: P
           <p className="p-6 text-sm text-brand-gray text-center">No places to manage.</p>
         ) : (
           places.map((place) => (
-            <div
+            <label
               key={place.id}
-              className="flex items-center justify-between gap-3 px-4 py-3 border-b border-brand-bg last:border-b-0"
+              className="flex items-center gap-3 px-4 py-3 border-b border-brand-bg last:border-b-0 cursor-pointer hover:bg-brand-bg"
             >
-              <div className="min-w-0">
+              <input
+                type="checkbox"
+                checked={selected.has(place.id)}
+                onChange={() => toggleOne(place.id)}
+              />
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium truncate">{place.name}</p>
                 <p className="text-xs text-brand-gray truncate">
                   {place.category} · {place.location ?? "No location"}
                 </p>
               </div>
-              <button
-                onClick={() => handleDeleteOne(place.id, place.name)}
-                disabled={deletingId === place.id}
-                className="text-xs text-red-600 shrink-0"
-              >
-                {deletingId === place.id ? "Deleting..." : "Delete"}
-              </button>
-            </div>
+            </label>
           ))
         )}
       </div>

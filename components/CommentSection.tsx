@@ -8,7 +8,8 @@ type Comment = {
   id: string;
   content: string;
   created_at: string;
-  created_by: string;
+  created_by: string | null;
+  guest_name: string | null;
   profiles: { name: string | null; email: string } | null;
 };
 
@@ -18,6 +19,7 @@ export default function CommentSection({ placeId }: { placeId: string }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
+  const [guestName, setGuestName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [loading, setLoading] = useState(true);
@@ -25,7 +27,7 @@ export default function CommentSection({ placeId }: { placeId: string }) {
   async function loadComments() {
     const { data } = await supabase
       .from("comments")
-      .select("id, content, created_at, created_by, profiles(name, email)")
+      .select("id, content, created_at, created_by, guest_name, profiles(name, email)")
       .eq("place_id", placeId)
       .order("created_at", { ascending: true });
     setComments((data as unknown as Comment[]) ?? []);
@@ -56,12 +58,16 @@ export default function CommentSection({ placeId }: { placeId: string }) {
   };
 
   async function submitComment() {
-    if (!newComment.trim() || !user) return;
-    const { error } = await supabase
-      .from("comments")
-      .insert({ place_id: placeId, content: newComment.trim(), created_by: user.id });
+    if (!newComment.trim()) return;
+    const { error } = await supabase.from("comments").insert({
+      place_id: placeId,
+      content: newComment.trim(),
+      created_by: user ? user.id : null,
+      guest_name: user ? null : guestName.trim() || null,
+    });
     if (!error) {
       setNewComment("");
+      setGuestName("");
       loadComments();
     }
   }
@@ -90,7 +96,7 @@ export default function CommentSection({ placeId }: { placeId: string }) {
           {comments.map((c) => (
             <div key={c.id} className="flex gap-2 items-start">
               <div className="w-7 h-7 rounded-full bg-brand-blueLight text-brand-blueDark text-xs font-medium flex items-center justify-center flex-shrink-0">
-                {(c.profiles?.name ?? c.profiles?.email ?? "?").slice(0, 1)}
+                {(c.profiles?.name ?? c.guest_name ?? c.profiles?.email ?? "?").slice(0, 1)}
               </div>
               <div className="flex-1">
                 {editingId === c.id ? (
@@ -110,7 +116,7 @@ export default function CommentSection({ placeId }: { placeId: string }) {
                 ) : (
                   <>
                     <p className="text-sm">
-                      <span className="font-medium">{c.profiles?.name ?? "Anonymous"}</span>{" "}
+                      <span className="font-medium">{c.profiles?.name ?? c.guest_name ?? "Anonymous"}</span>{" "}
                       — {c.content}
                     </p>
                     <div className="flex gap-2 mt-0.5">
@@ -139,24 +145,31 @@ export default function CommentSection({ placeId }: { placeId: string }) {
         </div>
       )}
 
-      <div className="mt-4">
-        {user ? (
-          <div className="flex gap-2">
-            <input
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Write a comment"
-              className="flex-1"
-              onKeyDown={(e) => e.key === "Enter" && submitComment()}
-            />
-            <button onClick={submitComment} className="btn-primary px-4 text-sm">
-              Post
-            </button>
-          </div>
-        ) : (
-          <button onClick={signInWithGoogle} className="btn-outline px-4 py-2 text-sm">
-            Sign in to comment
+      <div className="mt-4 space-y-2">
+        {!user && (
+          <input
+            value={guestName}
+            onChange={(e) => setGuestName(e.target.value)}
+            placeholder="Your name (optional)"
+            className="w-full sm:w-56"
+          />
+        )}
+        <div className="flex gap-2">
+          <input
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Write a comment"
+            className="flex-1"
+            onKeyDown={(e) => e.key === "Enter" && submitComment()}
+          />
+          <button onClick={submitComment} className="btn-primary px-4 text-sm">
+            Post
           </button>
+        </div>
+        {!user && (
+          <p className="text-xs text-brand-gray">
+            Commenting without an account. <button onClick={signInWithGoogle} className="text-brand-blue underline">Sign in with Google</button> to earn points for your comments.
+          </p>
         )}
       </div>
     </div>

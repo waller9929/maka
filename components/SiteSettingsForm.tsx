@@ -4,7 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function SiteSettingsForm({ initialTitle }: { initialTitle: string }) {
+export default function SiteSettingsForm({
+  initialTitle,
+  visitCount,
+}: {
+  initialTitle: string;
+  visitCount: number;
+}) {
   const supabase = createClient();
   const router = useRouter();
   const [title, setTitle] = useState(initialTitle);
@@ -30,26 +36,34 @@ export default function SiteSettingsForm({ initialTitle }: { initialTitle: strin
   }
 
   return (
-    <div className="card p-5 space-y-3">
-      <div>
-        <label className="text-sm font-medium block mb-1">Homepage title</label>
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full"
-          placeholder="MAKA - Work Hard, Eat Well"
-        />
-        <p className="text-xs text-brand-gray mt-1">
-          Shown at the top of the homepage for everyone.
-        </p>
+    <div className="space-y-4">
+      <div className="card p-5">
+        <p className="text-xs text-brand-gray mb-1">Total site visits</p>
+        <p className="text-2xl font-medium">{visitCount.toLocaleString()}</p>
+        <p className="text-xs text-brand-gray mt-1">Counted each time the homepage is loaded.</p>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {saved && !error && <p className="text-sm text-brand-blue">Saved.</p>}
+      <div className="card p-5 space-y-3">
+        <div>
+          <label className="text-sm font-medium block mb-1">Homepage title</label>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full"
+            placeholder="MAKA - Work Hard, Eat Well"
+          />
+          <p className="text-xs text-brand-gray mt-1">
+            Shown at the top of the homepage for everyone.
+          </p>
+        </div>
 
-      <button onClick={handleSave} disabled={saving} className="btn-primary px-4 py-2 text-sm">
-        {saving ? "Saving..." : "Save"}
-      </button>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {saved && !error && <p className="text-sm text-brand-blue">Saved.</p>}
+
+        <button onClick={handleSave} disabled={saving} className="btn-primary px-4 py-2 text-sm">
+          {saving ? "Saving..." : "Save"}
+        </button>
+      </div>
     </div>
   );
 }

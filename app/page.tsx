@@ -47,6 +47,11 @@ export default async function HomePage({
 
   const homeTitle = settings?.home_title ?? "MAKA - Work Hard, Eat Well";
 
+  // Site visit counter. Awaited (rather than fire-and-forget) since
+  // serverless functions can be frozen right after the response is sent,
+  // which would drop an un-awaited background call.
+  await supabase.rpc("increment_visit_count");
+
   let query = supabase
     .from("places")
     .select("id, name, location, category, rating, restaurant_type, photo_url, time_tags, companion_tags, profiles(name), comments(count)")

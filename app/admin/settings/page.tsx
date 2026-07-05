@@ -19,14 +19,17 @@ export default async function SiteSettingsPage() {
 
   const { data: settings } = await supabase
     .from("app_settings")
-    .select("home_title")
+    .select("home_title, visit_count")
     .eq("id", 1)
     .single();
 
   return (
     <div className="max-w-lg mx-auto">
       <h1 className="text-lg font-medium mb-4">Site settings</h1>
-      <SiteSettingsForm initialTitle={settings?.home_title ?? "MAKA - Work Hard, Eat Well"} />
+      <SiteSettingsForm
+        initialTitle={settings?.home_title ?? "MAKA - Work Hard, Eat Well"}
+        visitCount={settings?.visit_count ?? 0}
+      />
     </div>
   );
 }

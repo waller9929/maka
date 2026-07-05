@@ -64,6 +64,7 @@ create table if not exists public.places (
   time_tags text[] not null default '{}',       -- Lunch / Dinner / Weekend
   companion_tags text[] not null default '{}',  -- With family / Solo / With friends-colleagues
   comment text,
+  view_count integer not null default 0,
   created_by uuid not null references public.profiles(id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -88,12 +89,14 @@ create policy "only admins can delete places"
   on public.places for delete
   using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
 
--- 3. comments 테이블
+-- 3. comments 테이블 (created_by is nullable — guests can comment
+--    without signing in, using an optional guest_name instead)
 create table if not exists public.comments (
   id uuid primary key default gen_random_uuid(),
   place_id uuid not null references public.places(id) on delete cascade,
   content text not null,
-  created_by uuid not null references public.profiles(id),
+  created_by uuid references public.profiles(id),
+  guest_name text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -104,10 +107,12 @@ create policy "comments are viewable by everyone"
   on public.comments for select
   using (true);
 
-create policy "authenticated users can insert comments"
+create policy "anyone can insert comments"
   on public.comments for insert
-  to authenticated
-  with check (auth.uid() = created_by);
+  with check (
+    (auth.uid() is not null and created_by = auth.uid())
+    or (auth.uid() is null and created_by is null)
+  );
 
 create policy "owners can update their own comments"
   on public.comments for update
@@ -135,7 +140,8 @@ create trigger on_place_created
   after insert on public.places
   for each row execute procedure public.award_points_on_place_insert();
 
--- 댓글 작성 +3, 내 글에 다른 사람이 댓글 달면 글쓴이 +1
+-- 댓글 작성 +3 (로그인한 사용자만), 내 글에 다른 사람(또는 게스트)이
+-- 댓글 달면 글쓴이 +1
 create or replace function public.award_points_on_comment_insert()
 returns trigger
 language plpgsql
@@ -144,11 +150,13 @@ as $$
 declare
   place_owner uuid;
 begin
-  update public.profiles set points = points + 3 where id = new.created_by;
+  if new.created_by is not null then
+    update public.profiles set points = points + 3 where id = new.created_by;
+  end if;
 
   select created_by into place_owner from public.places where id = new.place_id;
 
-  if place_owner is not null and place_owner <> new.created_by then
+  if place_owner is not null and (new.created_by is null or place_owner <> new.created_by) then
     update public.profiles set points = points + 1 where id = place_owner;
   end if;
 
@@ -190,6 +198,7 @@ order by points desc, created_at asc;
 create table if not exists public.app_settings (
   id integer primary key default 1,
   home_title text not null default 'MAKA - Work Hard, Eat Well',
+  visit_count bigint not null default 0,
   updated_at timestamptz not null default now(),
   constraint app_settings_singleton check (id = 1)
 );
@@ -207,6 +216,26 @@ create policy "app settings are viewable by everyone"
 create policy "only admins can update app settings"
   on public.app_settings for update
   using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
+
+-- 8. 방문자 카운트 (사이트 전체 페이지뷰 + 맛집별 조회수)
+create or replace function public.increment_visit_count()
+returns void
+language sql
+security definer set search_path = public
+as $$
+  update public.app_settings set visit_count = visit_count + 1 where id = 1;
+$$;
+
+create or replace function public.increment_place_view(place_id uuid)
+returns void
+language sql
+security definer set search_path = public
+as $$
+  update public.places set view_count = view_count + 1 where id = place_id;
+$$;
+
+grant execute on function public.increment_visit_count() to anon, authenticated;
+grant execute on function public.increment_place_view(uuid) to anon, authenticated;
 
 -- ==========================================================
 -- Storage 버킷 (사진 / 메뉴판 업로드)
