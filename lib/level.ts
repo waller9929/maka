@@ -40,9 +40,9 @@ export const COMPANION_TAGS = ["With family", "Solo", "With friends/colleagues"]
 export const RESTAURANT_TYPES = ["Value", "Standard", "Premium"] as const;
 
 export const RESTAURANT_TYPE_INFO: Record<string, { label: string; badgeClass: string }> = {
-  Value: { label: "Value", badgeClass: "bg-green-100 text-green-800" },
-  Standard: { label: "Standard", badgeClass: "bg-brand-bg text-brand-gray" },
-  Premium: { label: "Premium", badgeClass: "bg-amber-100 text-amber-800" },
+  Value: { label: "Value", badgeClass: "bg-emerald-100 text-emerald-700" },
+  Standard: { label: "Standard", badgeClass: "bg-sky-100 text-sky-700" },
+  Premium: { label: "Premium", badgeClass: "bg-pink-100 text-pink-700" },
 };
 
 // Maps Google Places "types" values to MAKA categories for bulk import

@@ -98,20 +98,9 @@ export default function Navbar() {
                 </span>
               </Link>
               {profile?.is_admin && (
-                <>
-                  <Link href="/admin/bulk-upload" className="tag bg-brand-blueLight text-brand-blueDark">
-                    Bulk upload
-                  </Link>
-                  <Link href="/admin/settings" className="tag bg-brand-blueLight text-brand-blueDark">
-                    Site settings
-                  </Link>
-                  <Link href="/admin/places" className="tag bg-brand-blueLight text-brand-blueDark">
-                    Manage places
-                  </Link>
-                  <Link href="/admin/visitors" className="tag bg-brand-blueLight text-brand-blueDark">
-                    Visitors
-                  </Link>
-                </>
+                <Link href="/admin" className="tag bg-brand-blueLight text-brand-blueDark">
+                  Admin
+                </Link>
               )}
               <button onClick={signOut} className="text-white/60 hover:text-white text-xs">
                 Sign out

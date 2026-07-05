@@ -11,6 +11,7 @@ type PlaceRow = {
   location: string | null;
   category: string;
   restaurant_type: string | null;
+  rating: number;
   created_at: string;
 };
 
@@ -36,7 +37,8 @@ export default function AdminPlacesManager({ initialPlaces }: { initialPlaces: P
         orig.name !== p.name ||
         orig.location !== p.location ||
         orig.category !== p.category ||
-        orig.restaurant_type !== p.restaurant_type
+        orig.restaurant_type !== p.restaurant_type ||
+        orig.rating !== p.rating
       ) {
         ids.add(p.id);
       }
@@ -57,7 +59,7 @@ export default function AdminPlacesManager({ initialPlaces }: { initialPlaces: P
     setSelected(allSelected ? new Set() : new Set(places.map((p) => p.id)));
   }
 
-  function updateField(id: string, field: keyof PlaceRow, value: string) {
+  function updateField<K extends keyof PlaceRow>(id: string, field: K, value: PlaceRow[K]) {
     setSaved(false);
     setPlaces((prev) => prev.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
   }
@@ -97,6 +99,7 @@ export default function AdminPlacesManager({ initialPlaces }: { initialPlaces: P
             location: p.location,
             category: p.category,
             restaurant_type: p.restaurant_type,
+            rating: p.rating,
             updated_at: new Date().toISOString(),
           })
           .eq("id", id);
@@ -163,7 +166,7 @@ export default function AdminPlacesManager({ initialPlaces }: { initialPlaces: P
                 onChange={() => toggleOne(place.id)}
                 className="mt-2"
               />
-              <div className="min-w-0 flex-1 grid grid-cols-1 sm:grid-cols-4 gap-2">
+              <div className="min-w-0 flex-1 grid grid-cols-1 sm:grid-cols-5 gap-2">
                 <input
                   value={place.name}
                   onChange={(e) => updateField(place.id, "name", e.target.value)}
@@ -194,6 +197,16 @@ export default function AdminPlacesManager({ initialPlaces }: { initialPlaces: P
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
+                <input
+                  type="number"
+                  min={0}
+                  max={5}
+                  step={0.1}
+                  value={place.rating}
+                  onChange={(e) => updateField(place.id, "rating", parseFloat(e.target.value) || 0)}
+                  className="text-sm"
+                  placeholder="Rating"
+                />
               </div>
             </div>
           ))

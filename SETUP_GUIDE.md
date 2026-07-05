@@ -93,6 +93,10 @@ MAKA는 Next.js + Supabase(로그인·DB·사진저장) + Vercel(배포) + Googl
 - 카테고리 목록이 Western(양식) / Cafe(카페) / Korean(한식) / Indonesian(인니식) / Japanese(일식) / Seafood(해산물) / Chinese(중식) / Buffet(뷔페) / Other(기타) / Dessert(디저트) 10종으로 확장되었습니다. 기존 "Cafe/Dessert" 맛집은 일단 "Cafe"로 옮겨지며, 디저트 전문점이면 상세페이지에서 개별로 "Dessert"로 수정해주세요.
 - 메인 페이지의 "Today's picks" 제목 글자 자체가 숨김 링크입니다. 누르면 비밀번호를 물어보는 페이지(`/monthly-menu`)로 이동하고, 맞으면 관리자가 올려둔 "월 식단표" 이미지/파일을 보여줍니다. 기본 비밀번호는 `maka2026`이며, 관리자 "Site settings" 페이지에서 비밀번호와 식단표 파일을 바꿀 수 있습니다. (비밀번호는 DB에서 직접 대조만 하고 브라우저로 전달되지 않아 안전합니다.)
 - 관리자 전용 "Visitors" 메뉴에서 방문자 대시보드를 볼 수 있습니다. 최근 30일 일별 방문 그래프와, 구글 계정별(비로그인은 "Guest"로 묶어서) 방문 횟수 테이블을 함께 보여줍니다.
+- 관리자 메뉴가 "Bulk upload / Site settings / Manage places / Visitors" 4개 버튼으로 나열되던 것을 "Admin" 버튼 하나로 통합했습니다. 클릭하면 왼쪽에 메뉴 목록, 오른쪽에 선택한 화면이 나오는 관리자 전용 페이지로 이동합니다.
+- 모든 페이지 맨 아래에 Contact 정보(waller9929@gmail.com)를 표시하는 Footer가 추가되었습니다.
+- 관리자 "Manage places" 화면에서 이름/위치/카테고리/식당유형과 함께 평점(rating)도 목록에서 바로 수정할 수 있습니다.
+- Value/Standard/Premium 식당유형 배지 색상을 좀 더 눈에 띄는 파스텔톤(초록/하늘색/핑크)으로 바꿨습니다.
 
 ## 대량 맛집 업로드 (구글 지도 저장 리스트 가져오기)
 

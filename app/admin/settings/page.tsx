@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import SiteSettingsForm from "@/components/SiteSettingsForm";
 import SecretPageSettingsForm from "@/components/SecretPageSettingsForm";
 
@@ -7,16 +6,6 @@ export const dynamic = "force-dynamic";
 
 export default async function SiteSettingsPage() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile?.is_admin) redirect("/");
 
   const { data: settings } = await supabase
     .from("app_settings")

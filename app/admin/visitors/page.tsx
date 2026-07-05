@@ -1,21 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import VisitorDashboard from "@/components/VisitorDashboard";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminVisitorsPage() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile?.is_admin) redirect("/");
 
   const { data: logs } = await supabase
     .from("visit_logs")
@@ -44,7 +33,7 @@ export default async function AdminVisitorsPage() {
   const userCounts = Array.from(userMap.values()).sort((a, b) => b.count - a.count);
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div>
       <h1 className="text-lg font-medium mb-4">Visitors</h1>
       <VisitorDashboard dailyCounts={dailyCounts} userCounts={userCounts} totalVisits={rows.length} />
     </div>
