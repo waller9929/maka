@@ -19,11 +19,11 @@ export default async function AdminPlacesPage() {
 
   const { data: places } = await supabase
     .from("places")
-    .select("id, name, location, category, created_at")
+    .select("id, name, location, category, restaurant_type, created_at")
     .order("created_at", { ascending: false });
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <h1 className="text-lg font-medium mb-4">Manage places</h1>
       <AdminPlacesManager initialPlaces={places ?? []} />
     </div>

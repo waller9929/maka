@@ -17,7 +17,7 @@ from (
     ('Annyeong Sundaeguk', 'Gangnam Station Exit 3', 'Korean', 4.5, 'Value',
       array['Lunch'], array['Solo','With friends/colleagues'],
       'Great for a quick lunch. Rich broth and a generous portion.'),
-    ('Momos Coffee', 'Yeoksam-dong', 'Cafe/Dessert', 4.8, 'Standard',
+    ('Momos Coffee', 'Yeoksam-dong', 'Cafe', 4.8, 'Standard',
       array['Dinner','Weekend'], array['Solo','With friends/colleagues'],
       'Great coffee and plenty of seating, good for casual meetings too.'),
     ('Sushi Gen', 'Samseong-dong', 'Japanese', 4.2, 'Premium',

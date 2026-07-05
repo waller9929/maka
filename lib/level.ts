@@ -21,7 +21,18 @@ export function getNextLevelInfo(points: number) {
   return { name: next.name, pointsNeeded: next.min - points };
 }
 
-export const CATEGORIES = ["Korean", "Chinese", "Japanese", "Western", "Cafe/Dessert", "Other"] as const;
+export const CATEGORIES = [
+  "Western",
+  "Cafe",
+  "Korean",
+  "Indonesian",
+  "Japanese",
+  "Seafood",
+  "Chinese",
+  "Buffet",
+  "Other",
+  "Dessert",
+] as const;
 export const TIME_TAGS = ["Lunch", "Dinner", "Weekend"] as const;
 export const COMPANION_TAGS = ["With family", "Solo", "With friends/colleagues"] as const;
 
@@ -41,6 +52,11 @@ export function mapGoogleTypeToCategory(types: string[] | undefined): string {
   if (t.includes("korean")) return "Korean";
   if (t.includes("chinese")) return "Chinese";
   if (t.includes("japanese") || t.includes("sushi")) return "Japanese";
+  if (t.includes("indonesian")) return "Indonesian";
+  if (t.includes("seafood")) return "Seafood";
+  if (t.includes("buffet")) return "Buffet";
+  if (t.includes("dessert") || t.includes("bakery") || t.includes("ice_cream")) return "Dessert";
+  if (t.includes("cafe") || t.includes("coffee")) return "Cafe";
   if (
     t.includes("italian") ||
     t.includes("french") ||
@@ -50,7 +66,5 @@ export function mapGoogleTypeToCategory(types: string[] | undefined): string {
     t.includes("american")
   )
     return "Western";
-  if (t.includes("cafe") || t.includes("coffee") || t.includes("bakery") || t.includes("dessert"))
-    return "Cafe/Dessert";
   return "Other";
 }

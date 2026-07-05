@@ -71,7 +71,8 @@ MAKA는 Next.js + Supabase(로그인·DB·사진저장) + Vercel(배포) + Googl
 3. Supabase SQL Editor에서 `supabase/migration_v3.sql` 내용을 전체 실행합니다. (가격대 필드를 식당 유형(Value/Standard/Premium)으로 교체, 관리자가 홈페이지 타이틀을 수정할 수 있는 설정 테이블 추가)
 4. Supabase SQL Editor에서 `supabase/migration_v4.sql` 내용을 전체 실행합니다. (가성비(Value for money) 컬럼 제거)
 5. Supabase SQL Editor에서 `supabase/migration_v5.sql` 내용을 전체 실행합니다. (비로그인 댓글 허용, 방문자 카운트 컬럼/함수 추가)
-6. GitHub Desktop으로 새 코드를 push 하면 Vercel이 자동으로 재배포합니다.
+6. Supabase SQL Editor에서 `supabase/migration_v6.sql` 내용을 전체 실행합니다. (카테고리 목록 변경 — 기존 "Cafe/Dessert" 데이터를 "Cafe"로 이전)
+7. GitHub Desktop으로 새 코드를 push 하면 Vercel이 자동으로 재배포합니다.
 
 ## 이번 업데이트로 추가된 기능
 
@@ -83,9 +84,11 @@ MAKA는 Next.js + Supabase(로그인·DB·사진저장) + Vercel(배포) + Googl
 - 맛집 위치(location) 텍스트를 기준으로 "Region: Indonesia / Other" 필터가 추가되었고, Indonesia를 선택하면 주요 도시(Jakarta, Bandung, Surabaya, Bali 등) 하위 필터가 나타납니다. 별도 입력 없이 자동으로 판단됩니다.
 - 메인 페이지에 "Today's picks" 옆으로 "Top 10" 랭킹이 추가되었습니다 (평점 높은 순, 동점이면 댓글 수 많은 순, 필터/검색이 없을 때만 표시).
 - 관리자 계정의 "Manage places" 메뉴에서 체크박스로 맛집을 선택해서 "Delete selected"로 한 번에 삭제할 수 있습니다 (전체 선택도 가능, 되돌릴 수 없으니 신중하게 사용하세요).
+- 같은 "Manage places" 화면에서 이름/위치/카테고리/식당유형을 목록에 바로 입력해서 고칠 수 있습니다. 수정한 행은 파란색으로 표시되고, "Save changes" 버튼을 누르면 바뀐 항목만 한 번에 저장됩니다.
 - Google Maps 링크 붙여넣기 시 값이 중복 입력되던 버그를 수정했습니다.
 - 로그인하지 않아도 댓글을 남길 수 있습니다. 이름(선택) 입력란에 이름을 적으면 표시되고, 비워두면 "Anonymous"로 표시됩니다. 비로그인 댓글은 포인트가 적립되지 않습니다.
 - 사이트 전체 누적 방문자 수(관리자 "Site settings" 페이지에서만 확인 가능)와 각 맛집 상세페이지별 조회수가 집계됩니다.
+- 카테고리 목록이 Western(양식) / Cafe(카페) / Korean(한식) / Indonesian(인니식) / Japanese(일식) / Seafood(해산물) / Chinese(중식) / Buffet(뷔페) / Other(기타) / Dessert(디저트) 10종으로 확장되었습니다. 기존 "Cafe/Dessert" 맛집은 일단 "Cafe"로 옮겨지며, 디저트 전문점이면 상세페이지에서 개별로 "Dessert"로 수정해주세요.
 
 ## 대량 맛집 업로드 (구글 지도 저장 리스트 가져오기)
 
