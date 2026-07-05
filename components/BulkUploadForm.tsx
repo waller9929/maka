@@ -125,7 +125,7 @@ export default function BulkUploadForm() {
         category: row.category,
         rating: 0,
         value_rating: 0,
-        price_range: null,
+        restaurant_type: null,
         time_tags: [],
         companion_tags: [],
         comment: row.comment || null,

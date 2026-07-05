@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
-import { CATEGORIES, PRICE_RANGES, TIME_TAGS, COMPANION_TAGS } from "@/lib/level";
+import { CATEGORIES, RESTAURANT_TYPES, RESTAURANT_TYPE_INFO, TIME_TAGS, COMPANION_TAGS } from "@/lib/level";
 import StarRating from "./StarRating";
 import type { User } from "@supabase/supabase-js";
 
@@ -19,7 +19,7 @@ export type PlaceDetailData = {
   category: string;
   rating: number;
   value_rating: number;
-  price_range: string | null;
+  restaurant_type: string | null;
   photo_url: string | null;
   menu_photo_url: string | null;
   google_maps_url: string | null;
@@ -63,7 +63,7 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
         category: form.category,
         rating: form.rating,
         value_rating: form.value_rating,
-        price_range: form.price_range,
+        restaurant_type: form.restaurant_type,
         time_tags: form.time_tags,
         companion_tags: form.companion_tags,
         comment: form.comment,
@@ -90,13 +90,24 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
       <div className="card p-5 space-y-3">
         <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full" />
         <input value={form.location ?? ""} onChange={(e) => setForm({ ...form, location: e.target.value })} className="w-full" placeholder="Location" />
-        <div className="grid grid-cols-2 gap-3">
-          <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full">
-            {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <select value={form.price_range ?? ""} onChange={(e) => setForm({ ...form, price_range: e.target.value })} className="w-full">
-            {PRICE_RANGES.map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
+        <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full">
+          {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <div className="grid grid-cols-3 gap-2">
+          {RESTAURANT_TYPES.map((t) => (
+            <button
+              type="button"
+              key={t}
+              onClick={() => setForm({ ...form, restaurant_type: t })}
+              className={`rounded-card border py-2 text-sm text-center transition-colors ${
+                form.restaurant_type === t
+                  ? "bg-brand-blue text-white border-brand-blue"
+                  : "border-brand-gray text-brand-gray"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
         </div>
         <div className="grid grid-cols-2 gap-3">
           <input type="number" min={1} max={5} step={0.1} value={form.rating} onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })} className="w-full" />
@@ -145,7 +156,7 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
           <div>
             <h1 className="text-xl font-medium">{place.name}</h1>
             <p className="text-sm text-brand-gray mt-1">
-              {place.category} · {place.location ?? "No location"} · {place.price_range}
+              {place.category} · {place.location ?? "No location"}
             </p>
           </div>
           <div className="text-right">
@@ -155,6 +166,11 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
         </div>
 
         <div className="flex flex-wrap gap-1 mt-3">
+          {place.restaurant_type && RESTAURANT_TYPE_INFO[place.restaurant_type] && (
+            <span className={`tag ${RESTAURANT_TYPE_INFO[place.restaurant_type].badgeClass}`}>
+              {RESTAURANT_TYPE_INFO[place.restaurant_type].label}
+            </span>
+          )}
           {place.time_tags.map((t) => <span key={t} className="tag bg-brand-blueLight text-brand-blueDark">{t}</span>)}
           {place.companion_tags.map((t) => <span key={t} className="tag bg-brand-bg text-brand-gray">{t}</span>)}
         </div>

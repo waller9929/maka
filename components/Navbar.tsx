@@ -81,9 +81,11 @@ export default function Navbar() {
         </Link>
 
         <nav className="flex items-center gap-4 text-sm">
-          <Link href="/leaderboard" className="text-white/80 hover:text-white">
-            Leaderboard
-          </Link>
+          {profile?.is_admin && (
+            <Link href="/leaderboard" className="text-white/80 hover:text-white">
+              Leaderboard
+            </Link>
+          )}
 
           {user ? (
             <>
@@ -96,9 +98,14 @@ export default function Navbar() {
                 </span>
               </Link>
               {profile?.is_admin && (
-                <Link href="/admin/bulk-upload" className="tag bg-brand-blueLight text-brand-blueDark">
-                  Admin
-                </Link>
+                <>
+                  <Link href="/admin/bulk-upload" className="tag bg-brand-blueLight text-brand-blueDark">
+                    Bulk upload
+                  </Link>
+                  <Link href="/admin/settings" className="tag bg-brand-blueLight text-brand-blueDark">
+                    Site settings
+                  </Link>
+                </>
               )}
               <button onClick={signOut} className="text-white/60 hover:text-white text-xs">
                 Sign out

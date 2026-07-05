@@ -58,7 +58,7 @@ create table if not exists public.places (
   category text not null,
   rating numeric(2,1) not null default 0,
   value_rating numeric(2,1) not null default 0,
-  price_range text,
+  restaurant_type text,
   photo_url text,
   menu_photo_url text,
   google_maps_url text,
@@ -186,6 +186,28 @@ select
   (select count(*) from public.comments c where c.created_by = profiles.id) as comment_count
 from public.profiles
 order by points desc, created_at asc;
+
+-- 7. 사이트 설정 (관리자가 홈페이지 타이틀을 수정할 수 있도록 하는 단일 행 테이블)
+create table if not exists public.app_settings (
+  id integer primary key default 1,
+  home_title text not null default 'MAKA - Work Hard, Eat Well',
+  updated_at timestamptz not null default now(),
+  constraint app_settings_singleton check (id = 1)
+);
+
+insert into public.app_settings (id, home_title)
+values (1, 'MAKA - Work Hard, Eat Well')
+on conflict (id) do nothing;
+
+alter table public.app_settings enable row level security;
+
+create policy "app settings are viewable by everyone"
+  on public.app_settings for select
+  using (true);
+
+create policy "only admins can update app settings"
+  on public.app_settings for update
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
 
 -- ==========================================================
 -- Storage 버킷 (사진 / 메뉴판 업로드)

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { CATEGORIES, TIME_TAGS, COMPANION_TAGS, PRICE_RANGES } from "@/lib/level";
+import { CATEGORIES, TIME_TAGS, COMPANION_TAGS, RESTAURANT_TYPES } from "@/lib/level";
 import type { User } from "@supabase/supabase-js";
 
 function toggle(list: string[], value: string) {
@@ -36,7 +36,7 @@ export default function PlaceForm() {
   const [category, setCategory] = useState<string>(CATEGORIES[0]);
   const [rating, setRating] = useState(5);
   const [valueRating, setValueRating] = useState(5);
-  const [priceRange, setPriceRange] = useState<string>(PRICE_RANGES[0]);
+  const [restaurantType, setRestaurantType] = useState<string>(RESTAURANT_TYPES[0]);
   const [timeTags, setTimeTags] = useState<string[]>([]);
   const [companionTags, setCompanionTags] = useState<string[]>([]);
   const [comment, setComment] = useState("");
@@ -110,7 +110,7 @@ export default function PlaceForm() {
           category,
           rating,
           value_rating: valueRating,
-          price_range: priceRange,
+          restaurant_type: restaurantType,
           time_tags: timeTags,
           companion_tags: companionTags,
           comment: comment.trim() || null,
@@ -194,22 +194,32 @@ export default function PlaceForm() {
         <input value={location} onChange={(e) => setLocation(e.target.value)} className="w-full" placeholder="e.g. Near Gangnam Station Exit 3" />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-sm font-medium block mb-1">Category</label>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full">
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="text-sm font-medium block mb-1">Price range</label>
-          <select value={priceRange} onChange={(e) => setPriceRange(e.target.value)} className="w-full">
-            {PRICE_RANGES.map((p) => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
+      <div>
+        <label className="text-sm font-medium block mb-1">Category</label>
+        <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full">
+          {CATEGORIES.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium block mb-1">Restaurant type</label>
+        <div className="grid grid-cols-3 gap-2">
+          {RESTAURANT_TYPES.map((t) => (
+            <button
+              type="button"
+              key={t}
+              onClick={() => setRestaurantType(t)}
+              className={`rounded-card border py-2.5 text-sm text-center transition-colors ${
+                restaurantType === t
+                  ? "bg-brand-blue text-white border-brand-blue"
+                  : "border-brand-gray text-brand-gray"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
         </div>
       </div>
 

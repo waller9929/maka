@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import StarRating from "./StarRating";
+import { RESTAURANT_TYPE_INFO } from "@/lib/level";
 
 export type Place = {
   id: string;
@@ -9,7 +10,7 @@ export type Place = {
   category: string;
   rating: number;
   value_rating: number;
-  price_range: string | null;
+  restaurant_type: string | null;
   photo_url: string | null;
   time_tags: string[];
   companion_tags: string[];
@@ -44,6 +45,11 @@ export default function PlaceCard({ place }: { place: Place }) {
           {place.category} · {place.location ?? "No location"}
         </p>
         <div className="flex flex-wrap gap-1 mt-2">
+          {place.restaurant_type && RESTAURANT_TYPE_INFO[place.restaurant_type] && (
+            <span className={`tag ${RESTAURANT_TYPE_INFO[place.restaurant_type].badgeClass}`}>
+              {RESTAURANT_TYPE_INFO[place.restaurant_type].label}
+            </span>
+          )}
           {place.time_tags.map((t) => (
             <span key={t} className="tag bg-brand-blueLight text-brand-blueDark">
               {t}

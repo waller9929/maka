@@ -24,7 +24,15 @@ export function getNextLevelInfo(points: number) {
 export const CATEGORIES = ["Korean", "Chinese", "Japanese", "Western", "Cafe/Dessert", "Other"] as const;
 export const TIME_TAGS = ["Lunch", "Dinner", "Weekend"] as const;
 export const COMPANION_TAGS = ["With family", "Solo", "With friends/colleagues"] as const;
-export const PRICE_RANGES = ["Under $10", "$10-20", "$20-30", "Over $30"] as const;
+
+// Restaurant type (replaces the old numeric price range).
+export const RESTAURANT_TYPES = ["Value", "Standard", "Premium"] as const;
+
+export const RESTAURANT_TYPE_INFO: Record<string, { label: string; badgeClass: string }> = {
+  Value: { label: "Value", badgeClass: "bg-green-100 text-green-800" },
+  Standard: { label: "Standard", badgeClass: "bg-brand-bg text-brand-gray" },
+  Premium: { label: "Premium", badgeClass: "bg-amber-100 text-amber-800" },
+};
 
 // Maps Google Places "types" values to MAKA categories for bulk import
 export function mapGoogleTypeToCategory(types: string[] | undefined): string {

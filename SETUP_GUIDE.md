@@ -68,7 +68,15 @@ MAKA는 Next.js + Supabase(로그인·DB·사진저장) + Vercel(배포) + Googl
 
 1. Supabase SQL Editor에서 `supabase/migration_v2.sql` 내용을 전체 실행합니다. (방문일 필드 제거, 구글 지도 링크 컬럼 추가, 레벨 이름 영문화, 기존 한글 데이터를 영문으로 변환)
 2. 3단계를 따라 Google Places API 키를 발급받고, Vercel Environment Variables에 `GOOGLE_PLACES_API_KEY`를 추가합니다.
-3. GitHub Desktop으로 새 코드를 push 하면 Vercel이 자동으로 재배포합니다.
+3. Supabase SQL Editor에서 `supabase/migration_v3.sql` 내용을 전체 실행합니다. (가격대 필드를 식당 유형(Value/Standard/Premium)으로 교체, 관리자가 홈페이지 타이틀을 수정할 수 있는 설정 테이블 추가)
+4. GitHub Desktop으로 새 코드를 push 하면 Vercel이 자동으로 재배포합니다.
+
+## 이번 업데이트로 추가된 기능
+
+- 리더보드는 이제 관리자만 볼 수 있습니다 (메뉴에서도 숨겨집니다).
+- 맛집 등록/수정 화면에서 "Restaurant type"을 드롭다운이 아닌 박스 클릭으로 Value/Standard/Premium 중 선택합니다.
+- 메인 페이지 상단에 "Today's picks" 섹션이 추가되어, 매번 페이지를 열 때마다 서로 다른 카테고리에서 무작위로 3곳을 추천합니다.
+- 관리자 계정으로 로그인하면 우측 상단 "Site settings" 메뉴에서 메인 페이지 상단 타이틀 문구(기본값: "MAKA - Work Hard, Eat Well")를 직접 수정할 수 있습니다.
 
 ## 대량 맛집 업로드 (구글 지도 저장 리스트 가져오기)
 
