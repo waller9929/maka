@@ -107,7 +107,11 @@ export default async function HomePage({
       {isUnfiltered && (recommended.length > 0 || top10.length > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
-            <h2 className="text-base font-medium mb-1">Today's picks</h2>
+            <h2 className="text-base font-medium mb-1">
+              <Link href="/monthly-menu" className="text-inherit no-underline">
+                Today's picks
+              </Link>
+            </h2>
             <p className="text-xs text-brand-gray mb-3">
               Three random picks from three different categories.
             </p>
@@ -141,16 +145,6 @@ export default async function HomePage({
           ))}
         </div>
       )}
-
-      {/* Intentionally near-invisible — not a real UI affordance. */}
-      <Link
-        href="/monthly-menu"
-        aria-hidden="true"
-        tabIndex={-1}
-        className="fixed bottom-2 right-2 block w-3 h-3 opacity-0 hover:opacity-10"
-      >
-        &nbsp;
-      </Link>
     </div>
   );
 }
