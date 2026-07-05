@@ -31,22 +31,22 @@ export default async function MyPage() {
     <div className="max-w-2xl mx-auto space-y-4">
       <div className="card p-5">
         <p className="text-sm text-brand-gray">{profile?.email}</p>
-        <h1 className="text-xl font-medium mt-1">{profile?.name ?? "이름 없음"}</h1>
+        <h1 className="text-xl font-medium mt-1">{profile?.name ?? "No name"}</h1>
         <div className="flex items-center gap-2 mt-3">
           <span className="tag bg-brand-blue text-white text-sm">{level}</span>
-          <span className="text-sm text-brand-gray">{points}점</span>
+          <span className="text-sm text-brand-gray">{points} pts</span>
         </div>
         {next && (
           <p className="text-xs text-brand-gray mt-2">
-            다음 레벨 {next.name}까지 {next.pointsNeeded}점 남았어요.
+            {next.pointsNeeded} points to go until {next.name}.
           </p>
         )}
       </div>
 
       <div className="card p-5">
-        <h2 className="text-sm font-medium mb-3">내가 등록한 맛집 ({myPlaces?.length ?? 0})</h2>
+        <h2 className="text-sm font-medium mb-3">Places I've added ({myPlaces?.length ?? 0})</h2>
         {!myPlaces || myPlaces.length === 0 ? (
-          <p className="text-sm text-brand-gray">아직 등록한 맛집이 없습니다.</p>
+          <p className="text-sm text-brand-gray">You haven't added any places yet.</p>
         ) : (
           <ul className="space-y-2">
             {myPlaces.map((p) => (

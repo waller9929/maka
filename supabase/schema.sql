@@ -59,11 +59,11 @@ create table if not exists public.places (
   rating numeric(2,1) not null default 0,
   value_rating numeric(2,1) not null default 0,
   price_range text,
-  visit_date date,
   photo_url text,
   menu_photo_url text,
-  time_tags text[] not null default '{}',       -- 점심 / 저녁 / 주말
-  companion_tags text[] not null default '{}',  -- 가족과 함께 / 혼자서 / 친구·동료와 함께
+  google_maps_url text,
+  time_tags text[] not null default '{}',       -- Lunch / Dinner / Weekend
+  companion_tags text[] not null default '{}',  -- With family / Solo / With friends-colleagues
   comment text,
   created_by uuid not null references public.profiles(id),
   created_at timestamptz not null default now(),
@@ -162,18 +162,18 @@ create trigger on_comment_created
   after insert on public.comments
   for each row execute procedure public.award_points_on_comment_insert();
 
--- 5. 레벨 계산 함수 (프론트에서도 lib/level.ts 로 동일 로직 사용)
+-- 5. Level calculation function (same logic mirrored in lib/level.ts on the frontend)
 create or replace function public.get_level(pts integer)
 returns text
 language sql
 immutable
 as $$
   select case
-    when pts >= 200 then 'Lv5 맛집전설'
-    when pts >= 100 then 'Lv4 미식마스터'
-    when pts >= 50 then 'Lv3 맛집헌터'
-    when pts >= 20 then 'Lv2 미식가'
-    else 'Lv1 새싹'
+    when pts >= 200 then 'Lv5 Legend'
+    when pts >= 100 then 'Lv4 Gourmet Master'
+    when pts >= 50 then 'Lv3 Hunter'
+    when pts >= 20 then 'Lv2 Foodie'
+    else 'Lv1 Sprout'
   end;
 $$;
 

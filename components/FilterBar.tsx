@@ -24,7 +24,7 @@ export default function FilterBar() {
     <div className="space-y-3 mb-5">
       <input
         type="text"
-        placeholder="가게명, 지역으로 검색"
+        placeholder="Search by name or location"
         defaultValue={q}
         onKeyDown={(e) => {
           if (e.key === "Enter") updateParam("q", (e.target as HTMLInputElement).value);
@@ -37,7 +37,7 @@ export default function FilterBar() {
           onClick={() => updateParam("category", "")}
           className={`tag border ${category === "" ? "bg-brand-blue text-white border-brand-blue" : "border-brand-gray text-brand-gray"}`}
         >
-          전체
+          All
         </button>
         {CATEGORIES.map((c) => (
           <button
@@ -52,7 +52,7 @@ export default function FilterBar() {
 
       <div className="flex flex-wrap gap-4">
         <div className="flex gap-2 items-center">
-          <span className="text-xs text-brand-gray">시간대</span>
+          <span className="text-xs text-brand-gray">Time</span>
           {TIME_TAGS.map((t) => (
             <button
               key={t}
@@ -64,7 +64,7 @@ export default function FilterBar() {
           ))}
         </div>
         <div className="flex gap-2 items-center">
-          <span className="text-xs text-brand-gray">함께</span>
+          <span className="text-xs text-brand-gray">With</span>
           {COMPANION_TAGS.map((t) => (
             <button
               key={t}

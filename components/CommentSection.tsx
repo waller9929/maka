@@ -74,17 +74,17 @@ export default function CommentSection({ placeId }: { placeId: string }) {
   }
 
   async function deleteComment(id: string) {
-    if (!confirm("이 댓글을 삭제하시겠습니까?")) return;
+    if (!confirm("Delete this comment?")) return;
     await supabase.from("comments").delete().eq("id", id);
     loadComments();
   }
 
   return (
     <div className="border-t border-brand-bg pt-4 mt-4">
-      <p className="text-sm text-brand-gray mb-3">댓글 {comments.length}개</p>
+      <p className="text-sm text-brand-gray mb-3">{comments.length} comments</p>
 
       {loading ? (
-        <p className="text-sm text-brand-gray">불러오는 중...</p>
+        <p className="text-sm text-brand-gray">Loading...</p>
       ) : (
         <div className="space-y-3">
           {comments.map((c) => (
@@ -101,16 +101,16 @@ export default function CommentSection({ placeId }: { placeId: string }) {
                       className="flex-1"
                     />
                     <button onClick={() => saveEdit(c.id)} className="btn-primary px-3 text-xs">
-                      저장
+                      Save
                     </button>
                     <button onClick={() => setEditingId(null)} className="btn-outline px-3 text-xs">
-                      취소
+                      Cancel
                     </button>
                   </div>
                 ) : (
                   <>
                     <p className="text-sm">
-                      <span className="font-medium">{c.profiles?.name ?? "익명"}</span>{" "}
+                      <span className="font-medium">{c.profiles?.name ?? "Anonymous"}</span>{" "}
                       — {c.content}
                     </p>
                     <div className="flex gap-2 mt-0.5">
@@ -122,12 +122,12 @@ export default function CommentSection({ placeId }: { placeId: string }) {
                           }}
                           className="text-xs text-brand-blue"
                         >
-                          수정
+                          Edit
                         </button>
                       )}
                       {isAdmin && (
                         <button onClick={() => deleteComment(c.id)} className="text-xs text-red-600">
-                          삭제(관리자)
+                          Delete (admin)
                         </button>
                       )}
                     </div>
@@ -145,17 +145,17 @@ export default function CommentSection({ placeId }: { placeId: string }) {
             <input
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder="댓글을 입력하세요"
+              placeholder="Write a comment"
               className="flex-1"
               onKeyDown={(e) => e.key === "Enter" && submitComment()}
             />
             <button onClick={submitComment} className="btn-primary px-4 text-sm">
-              등록
+              Post
             </button>
           </div>
         ) : (
           <button onClick={signInWithGoogle} className="btn-outline px-4 py-2 text-sm">
-            로그인하고 댓글 남기기
+            Sign in to comment
           </button>
         )}
       </div>

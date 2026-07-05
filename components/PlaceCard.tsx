@@ -32,7 +32,7 @@ export default function PlaceCard({ place }: { place: Place }) {
             className="object-cover"
           />
         ) : (
-          <span className="text-brand-gray text-xs">사진 없음</span>
+          <span className="text-brand-gray text-xs">No photo</span>
         )}
       </div>
       <div className="p-3">
@@ -41,7 +41,7 @@ export default function PlaceCard({ place }: { place: Place }) {
           <StarRating value={place.rating} />
         </div>
         <p className="text-xs text-brand-gray mt-1">
-          {place.category} · {place.location ?? "위치 미입력"}
+          {place.category} · {place.location ?? "No location"}
         </p>
         <div className="flex flex-wrap gap-1 mt-2">
           {place.time_tags.map((t) => (
@@ -51,8 +51,8 @@ export default function PlaceCard({ place }: { place: Place }) {
           ))}
         </div>
         <p className="text-xs text-brand-gray mt-2">
-          {place.recommender_name ? `${place.recommender_name} 추천` : ""}
-          {place.comment_count !== undefined ? ` · 댓글 ${place.comment_count}개` : ""}
+          {place.recommender_name ? `Added by ${place.recommender_name}` : ""}
+          {place.comment_count !== undefined ? ` · ${place.comment_count} comments` : ""}
         </p>
       </div>
     </Link>

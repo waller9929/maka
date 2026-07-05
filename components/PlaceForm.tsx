@@ -10,10 +10,26 @@ function toggle(list: string[], value: string) {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 }
 
+function dataUrlToFile(dataUrl: string, filename: string): File {
+  const [header, base64] = dataUrl.split(",");
+  const mimeMatch = header.match(/data:(.*);base64/);
+  const mime = mimeMatch ? mimeMatch[1] : "image/jpeg";
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new File([bytes], filename, { type: mime });
+}
+
 export default function PlaceForm() {
   const supabase = createClient();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+
+  const [mapsUrl, setMapsUrl] = useState("");
+  const [mapsLoading, setMapsLoading] = useState(false);
+  const [mapsError, setMapsError] = useState("");
+  const [fetchedPhotoDataUrl, setFetchedPhotoDataUrl] = useState<string | null>(null);
+  const [resolvedMapsUrl, setResolvedMapsUrl] = useState<string | null>(null);
 
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
@@ -21,7 +37,6 @@ export default function PlaceForm() {
   const [rating, setRating] = useState(5);
   const [valueRating, setValueRating] = useState(5);
   const [priceRange, setPriceRange] = useState<string>(PRICE_RANGES[0]);
-  const [visitDate, setVisitDate] = useState("");
   const [timeTags, setTimeTags] = useState<string[]>([]);
   const [companionTags, setCompanionTags] = useState<string[]>([]);
   const [comment, setComment] = useState("");
@@ -33,6 +48,31 @@ export default function PlaceForm() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
   }, [supabase]);
+
+  async function fetchFromMapsLink() {
+    if (!mapsUrl.trim()) return;
+    setMapsLoading(true);
+    setMapsError("");
+    try {
+      const res = await fetch("/api/places-lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: mapsUrl.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Lookup failed.");
+
+      if (data.name) setName(data.name);
+      if (data.location) setLocation(data.location);
+      if (data.category) setCategory(data.category);
+      if (data.photoDataUrl) setFetchedPhotoDataUrl(data.photoDataUrl);
+      if (data.googleMapsUrl) setResolvedMapsUrl(data.googleMapsUrl);
+    } catch (err: any) {
+      setMapsError(err.message ?? "Could not fetch info from that link.");
+    } finally {
+      setMapsLoading(false);
+    }
+  }
 
   async function uploadFile(file: File, prefix: string) {
     const ext = file.name.split(".").pop();
@@ -47,13 +87,19 @@ export default function PlaceForm() {
     e.preventDefault();
     if (!user) return;
     if (!name.trim()) {
-      setError("가게명을 입력해주세요.");
+      setError("Please enter a place name.");
       return;
     }
     setSubmitting(true);
     setError("");
     try {
-      const photo_url = photoFile ? await uploadFile(photoFile, "photos") : null;
+      let photo_url: string | null = null;
+      if (photoFile) {
+        photo_url = await uploadFile(photoFile, "photos");
+      } else if (fetchedPhotoDataUrl) {
+        const file = dataUrlToFile(fetchedPhotoDataUrl, "google-photo.jpg");
+        photo_url = await uploadFile(file, "photos");
+      }
       const menu_photo_url = menuFile ? await uploadFile(menuFile, "menus") : null;
 
       const { data, error: insertError } = await supabase
@@ -65,12 +111,12 @@ export default function PlaceForm() {
           rating,
           value_rating: valueRating,
           price_range: priceRange,
-          visit_date: visitDate || null,
           time_tags: timeTags,
           companion_tags: companionTags,
           comment: comment.trim() || null,
           photo_url,
           menu_photo_url,
+          google_maps_url: resolvedMapsUrl || mapsUrl.trim() || null,
           created_by: user.id,
         })
         .select("id")
@@ -80,7 +126,7 @@ export default function PlaceForm() {
       router.push(`/places/${data.id}`);
       router.refresh();
     } catch (err: any) {
-      setError(err.message ?? "등록 중 오류가 발생했습니다.");
+      setError(err.message ?? "Something went wrong while saving.");
     } finally {
       setSubmitting(false);
     }
@@ -89,7 +135,7 @@ export default function PlaceForm() {
   if (!user) {
     return (
       <div className="card p-6 text-center">
-        <p className="text-sm text-brand-gray mb-3">맛집을 추천하려면 구글 로그인이 필요합니다.</p>
+        <p className="text-sm text-brand-gray mb-3">Sign in with Google to recommend a place.</p>
         <button
           onClick={() =>
             supabase.auth.signInWithOAuth({
@@ -99,7 +145,7 @@ export default function PlaceForm() {
           }
           className="btn-primary px-4 py-2 text-sm"
         >
-          구글 로그인
+          Sign in with Google
         </button>
       </div>
     );
@@ -108,18 +154,49 @@ export default function PlaceForm() {
   return (
     <form onSubmit={handleSubmit} className="card p-5 space-y-4">
       <div>
-        <label className="text-sm font-medium block mb-1">가게명 *</label>
+        <label className="text-sm font-medium block mb-1">Google Maps link (optional)</label>
+        <div className="flex gap-2">
+          <input
+            value={mapsUrl}
+            onChange={(e) => setMapsUrl(e.target.value)}
+            onPaste={(e) => {
+              const pasted = e.clipboardData.getData("text");
+              if (pasted) {
+                setMapsUrl(pasted);
+                setTimeout(() => fetchFromMapsLink(), 0);
+              }
+            }}
+            placeholder="https://maps.app.goo.gl/..."
+            className="flex-1"
+          />
+          <button
+            type="button"
+            onClick={fetchFromMapsLink}
+            disabled={mapsLoading || !mapsUrl.trim()}
+            className="btn-outline px-3 text-sm whitespace-nowrap"
+          >
+            {mapsLoading ? "Fetching..." : "Fetch info"}
+          </button>
+        </div>
+        {mapsError && <p className="text-xs text-red-600 mt-1">{mapsError}</p>}
+        {fetchedPhotoDataUrl && (
+          <p className="text-xs text-brand-gray mt-1">Fetched a photo from Google Maps — it will be used unless you upload your own below.</p>
+        )}
+      </div>
+
+      <div>
+        <label className="text-sm font-medium block mb-1">Name *</label>
         <input value={name} onChange={(e) => setName(e.target.value)} className="w-full" required />
       </div>
 
       <div>
-        <label className="text-sm font-medium block mb-1">위치</label>
-        <input value={location} onChange={(e) => setLocation(e.target.value)} className="w-full" placeholder="예: 강남역 3번 출구" />
+        <label className="text-sm font-medium block mb-1">Location</label>
+        <input value={location} onChange={(e) => setLocation(e.target.value)} className="w-full" placeholder="e.g. Near Gangnam Station Exit 3" />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium block mb-1">카테고리</label>
+          <label className="text-sm font-medium block mb-1">Category</label>
           <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full">
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>{c}</option>
@@ -127,7 +204,7 @@ export default function PlaceForm() {
           </select>
         </div>
         <div>
-          <label className="text-sm font-medium block mb-1">가격대</label>
+          <label className="text-sm font-medium block mb-1">Price range</label>
           <select value={priceRange} onChange={(e) => setPriceRange(e.target.value)} className="w-full">
             {PRICE_RANGES.map((p) => (
               <option key={p} value={p}>{p}</option>
@@ -138,22 +215,17 @@ export default function PlaceForm() {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium block mb-1">평점 (1~5)</label>
+          <label className="text-sm font-medium block mb-1">Rating (1-5)</label>
           <input type="number" min={1} max={5} step={0.1} value={rating} onChange={(e) => setRating(Number(e.target.value))} className="w-full" />
         </div>
         <div>
-          <label className="text-sm font-medium block mb-1">가성비 별점 (1~5)</label>
+          <label className="text-sm font-medium block mb-1">Value for money (1-5)</label>
           <input type="number" min={1} max={5} step={0.1} value={valueRating} onChange={(e) => setValueRating(Number(e.target.value))} className="w-full" />
         </div>
       </div>
 
       <div>
-        <label className="text-sm font-medium block mb-1">방문일</label>
-        <input type="date" value={visitDate} onChange={(e) => setVisitDate(e.target.value)} className="w-full sm:w-48" />
-      </div>
-
-      <div>
-        <label className="text-sm font-medium block mb-1">추천 시간대</label>
+        <label className="text-sm font-medium block mb-1">Best for</label>
         <div className="flex gap-2">
           {TIME_TAGS.map((t) => (
             <button
@@ -169,7 +241,7 @@ export default function PlaceForm() {
       </div>
 
       <div>
-        <label className="text-sm font-medium block mb-1">함께하기 좋은 사람</label>
+        <label className="text-sm font-medium block mb-1">Good company</label>
         <div className="flex gap-2 flex-wrap">
           {COMPANION_TAGS.map((t) => (
             <button
@@ -185,24 +257,24 @@ export default function PlaceForm() {
       </div>
 
       <div>
-        <label className="text-sm font-medium block mb-1">사진 업로드</label>
+        <label className="text-sm font-medium block mb-1">Upload a photo</label>
         <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)} />
       </div>
 
       <div>
-        <label className="text-sm font-medium block mb-1">메뉴판 사진 업로드</label>
+        <label className="text-sm font-medium block mb-1">Upload a menu photo</label>
         <input type="file" accept="image/*" onChange={(e) => setMenuFile(e.target.files?.[0] ?? null)} />
       </div>
 
       <div>
-        <label className="text-sm font-medium block mb-1">한줄 코멘트</label>
+        <label className="text-sm font-medium block mb-1">One-line comment</label>
         <textarea value={comment} onChange={(e) => setComment(e.target.value)} className="w-full" rows={3} />
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <button type="submit" disabled={submitting} className="btn-primary w-full py-2.5 text-sm">
-        {submitting ? "등록 중..." : "맛집 등록하기 (+10점)"}
+        {submitting ? "Saving..." : "Add place (+10 points)"}
       </button>
     </form>
   );

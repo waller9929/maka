@@ -20,13 +20,14 @@ export type PlaceDetailData = {
   rating: number;
   value_rating: number;
   price_range: string | null;
-  visit_date: string | null;
   photo_url: string | null;
   menu_photo_url: string | null;
+  google_maps_url: string | null;
   time_tags: string[];
   companion_tags: string[];
   comment: string | null;
   created_by: string;
+  created_at: string;
   recommender_name: string | null;
 };
 
@@ -63,7 +64,6 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
         rating: form.rating,
         value_rating: form.value_rating,
         price_range: form.price_range,
-        visit_date: form.visit_date,
         time_tags: form.time_tags,
         companion_tags: form.companion_tags,
         comment: form.comment,
@@ -79,7 +79,7 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
   }
 
   async function deletePlace() {
-    if (!confirm("이 맛집을 삭제하시겠습니까? 되돌릴 수 없습니다.")) return;
+    if (!confirm("Delete this place? This cannot be undone.")) return;
     await supabase.from("places").delete().eq("id", place.id);
     router.push("/");
     router.refresh();
@@ -89,7 +89,7 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
     return (
       <div className="card p-5 space-y-3">
         <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full" />
-        <input value={form.location ?? ""} onChange={(e) => setForm({ ...form, location: e.target.value })} className="w-full" placeholder="위치" />
+        <input value={form.location ?? ""} onChange={(e) => setForm({ ...form, location: e.target.value })} className="w-full" placeholder="Location" />
         <div className="grid grid-cols-2 gap-3">
           <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full">
             {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -121,10 +121,10 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
         <textarea value={form.comment ?? ""} onChange={(e) => setForm({ ...form, comment: e.target.value })} className="w-full" rows={3} />
         <div className="flex gap-2">
           <button onClick={saveChanges} disabled={saving} className="btn-primary px-4 py-2 text-sm">
-            {saving ? "저장 중..." : "저장"}
+            {saving ? "Saving..." : "Save"}
           </button>
           <button onClick={() => { setEditing(false); setForm(place); }} className="btn-outline px-4 py-2 text-sm">
-            취소
+            Cancel
           </button>
         </div>
       </div>
@@ -137,7 +137,7 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
         {place.photo_url ? (
           <Image src={place.photo_url} alt={place.name} fill className="object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-brand-gray text-sm">사진 없음</div>
+          <div className="w-full h-full flex items-center justify-center text-brand-gray text-sm">No photo</div>
         )}
       </div>
       <div className="p-5">
@@ -145,12 +145,12 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
           <div>
             <h1 className="text-xl font-medium">{place.name}</h1>
             <p className="text-sm text-brand-gray mt-1">
-              {place.category} · {place.location ?? "위치 미입력"} · {place.price_range}
+              {place.category} · {place.location ?? "No location"} · {place.price_range}
             </p>
           </div>
           <div className="text-right">
             <StarRating value={place.rating} />
-            <p className="text-xs text-brand-gray mt-1">가성비 ★ {Number(place.value_rating ?? 0).toFixed(1)}</p>
+            <p className="text-xs text-brand-gray mt-1">Value ★ {Number(place.value_rating ?? 0).toFixed(1)}</p>
           </div>
         </div>
 
@@ -162,15 +162,26 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
         {place.comment && <p className="text-sm mt-3">{place.comment}</p>}
 
         <p className="text-xs text-brand-gray mt-3">
-          {place.recommender_name ? `${place.recommender_name} 추천` : ""}
-          {place.visit_date ? ` · 방문일 ${place.visit_date}` : ""}
+          {place.recommender_name ? `Added by ${place.recommender_name}` : ""}
+          {place.created_at ? ` · Posted ${new Date(place.created_at).toLocaleDateString()}` : ""}
         </p>
+
+        {place.google_maps_url && (
+          <a
+            href={place.google_maps_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-brand-blue mt-1 inline-block"
+          >
+            View on Google Maps ↗
+          </a>
+        )}
 
         {place.menu_photo_url && (
           <div className="mt-4">
-            <p className="text-sm font-medium mb-2">메뉴판</p>
+            <p className="text-sm font-medium mb-2">Menu</p>
             <div className="relative w-full h-64 bg-brand-bg rounded-card overflow-hidden">
-              <Image src={place.menu_photo_url} alt="메뉴판" fill className="object-contain" />
+              <Image src={place.menu_photo_url} alt="Menu" fill className="object-contain" />
             </div>
           </div>
         )}
@@ -178,12 +189,12 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
         <div className="flex gap-3 mt-4">
           {isOwner && (
             <button onClick={() => setEditing(true)} className="text-sm text-brand-blue">
-              수정
+              Edit
             </button>
           )}
           {isAdmin && (
             <button onClick={deletePlace} className="text-sm text-red-600">
-              삭제(관리자)
+              Delete (admin)
             </button>
           )}
         </div>

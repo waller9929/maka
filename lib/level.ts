@@ -1,9 +1,9 @@
 export const LEVELS = [
-  { name: "Lv1 새싹", min: 0 },
-  { name: "Lv2 미식가", min: 20 },
-  { name: "Lv3 맛집헌터", min: 50 },
-  { name: "Lv4 미식마스터", min: 100 },
-  { name: "Lv5 맛집전설", min: 200 },
+  { name: "Lv1 Sprout", min: 0 },
+  { name: "Lv2 Foodie", min: 20 },
+  { name: "Lv3 Hunter", min: 50 },
+  { name: "Lv4 Gourmet Master", min: 100 },
+  { name: "Lv5 Legend", min: 200 },
 ] as const;
 
 export function getLevel(points: number) {
@@ -21,7 +21,28 @@ export function getNextLevelInfo(points: number) {
   return { name: next.name, pointsNeeded: next.min - points };
 }
 
-export const CATEGORIES = ["한식", "중식", "일식", "양식", "카페·디저트", "기타"] as const;
-export const TIME_TAGS = ["점심", "저녁", "주말"] as const;
-export const COMPANION_TAGS = ["가족과 함께", "혼자서", "친구·동료와 함께"] as const;
-export const PRICE_RANGES = ["1만원 이하", "1~2만원", "2~3만원", "3만원 이상"] as const;
+export const CATEGORIES = ["Korean", "Chinese", "Japanese", "Western", "Cafe/Dessert", "Other"] as const;
+export const TIME_TAGS = ["Lunch", "Dinner", "Weekend"] as const;
+export const COMPANION_TAGS = ["With family", "Solo", "With friends/colleagues"] as const;
+export const PRICE_RANGES = ["Under $10", "$10-20", "$20-30", "Over $30"] as const;
+
+// Maps Google Places "types" values to MAKA categories for bulk import
+export function mapGoogleTypeToCategory(types: string[] | undefined): string {
+  if (!types) return "Other";
+  const t = types.join(",").toLowerCase();
+  if (t.includes("korean")) return "Korean";
+  if (t.includes("chinese")) return "Chinese";
+  if (t.includes("japanese") || t.includes("sushi")) return "Japanese";
+  if (
+    t.includes("italian") ||
+    t.includes("french") ||
+    t.includes("steak") ||
+    t.includes("pizza") ||
+    t.includes("western") ||
+    t.includes("american")
+  )
+    return "Western";
+  if (t.includes("cafe") || t.includes("coffee") || t.includes("bakery") || t.includes("dessert"))
+    return "Cafe/Dessert";
+  return "Other";
+}

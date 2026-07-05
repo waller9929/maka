@@ -37,14 +37,14 @@ export default async function HomePage({
 
   return (
     <div>
-      <h1 className="text-lg font-medium mb-4">우리 팀 맛집</h1>
+      <h1 className="text-lg font-medium mb-4">Our team's restaurants</h1>
       <FilterBar />
 
-      {error && <p className="text-sm text-red-600">목록을 불러오지 못했습니다: {error.message}</p>}
+      {error && <p className="text-sm text-red-600">Couldn't load the list: {error.message}</p>}
 
       {places.length === 0 ? (
         <div className="card p-10 text-center text-brand-gray text-sm">
-          아직 등록된 맛집이 없습니다. 첫 맛집을 추천해보세요!
+          No places yet. Be the first to add one!
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
