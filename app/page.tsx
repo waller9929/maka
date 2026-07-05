@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import FilterBar from "@/components/FilterBar";
 import PlaceCard, { type Place } from "@/components/PlaceCard";
@@ -140,6 +141,16 @@ export default async function HomePage({
           ))}
         </div>
       )}
+
+      {/* Intentionally near-invisible — not a real UI affordance. */}
+      <Link
+        href="/monthly-menu"
+        aria-hidden="true"
+        tabIndex={-1}
+        className="fixed bottom-2 right-2 block w-3 h-3 opacity-0 hover:opacity-10"
+      >
+        &nbsp;
+      </Link>
     </div>
   );
 }

@@ -237,6 +237,43 @@ $$;
 grant execute on function public.increment_visit_count() to anon, authenticated;
 grant execute on function public.increment_place_view(uuid) to anon, authenticated;
 
+-- 9. 숨겨진 "월 식단표" 페이지 (홈페이지 우측 하단의 눈에 잘 안 띄는
+--    버튼으로 접속, 비밀번호 입력 후 열람 가능)
+create table if not exists public.secret_page (
+  id integer primary key default 1,
+  password text not null default 'maka2026',
+  meal_plan_url text,
+  updated_at timestamptz not null default now(),
+  constraint secret_page_singleton check (id = 1)
+);
+
+insert into public.secret_page (id, password)
+values (1, 'maka2026')
+on conflict (id) do nothing;
+
+alter table public.secret_page enable row level security;
+
+create policy "only admins can view secret page settings"
+  on public.secret_page for select
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
+
+create policy "only admins can update secret page settings"
+  on public.secret_page for update
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
+
+-- Checks the password server-side and returns the meal plan URL only if
+-- it matches — the stored password is never sent to the client.
+create or replace function public.get_meal_plan(input_password text)
+returns text
+language sql
+security definer set search_path = public
+as $$
+  select meal_plan_url from public.secret_page
+  where id = 1 and password = input_password;
+$$;
+
+grant execute on function public.get_meal_plan(text) to anon, authenticated;
+
 -- ==========================================================
 -- Storage 버킷 (사진 / 메뉴판 업로드)
 -- SQL Editor 에서 실행하거나, 대시보드 Storage 메뉴에서
