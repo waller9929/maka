@@ -8,7 +8,7 @@ export default async function AdminPlacesPage() {
 
   const { data: places } = await supabase
     .from("places")
-    .select("id, name, location, category, restaurant_type, rating, created_at")
+    .select("id, name, location, category, restaurant_type, base_rating, rating, created_at")
     .order("created_at", { ascending: false });
 
   return (

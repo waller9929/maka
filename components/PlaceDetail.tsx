@@ -18,6 +18,7 @@ export type PlaceDetailData = {
   location: string | null;
   category: string;
   rating: number;
+  base_rating: number;
   restaurant_type: string | null;
   photo_url: string | null;
   menu_photo_url: string | null;
@@ -61,7 +62,7 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
         name: form.name,
         location: form.location,
         category: form.category,
-        rating: form.rating,
+        base_rating: form.base_rating,
         restaurant_type: form.restaurant_type,
         time_tags: form.time_tags,
         companion_tags: form.companion_tags,
@@ -108,7 +109,10 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
             </button>
           ))}
         </div>
-        <input type="number" min={1} max={5} step={0.1} value={form.rating} onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })} className="w-full" placeholder="Rating (1-5)" />
+        <input type="number" min={0} max={5} step={0.1} value={form.base_rating} onChange={(e) => setForm({ ...form, base_rating: Number(e.target.value) })} className="w-full" placeholder="Base rating (1-5)" />
+        <p className="text-xs text-brand-gray -mt-2">
+          This seeds the overall rating; it's automatically averaged with any ratings left in comments.
+        </p>
         <div className="flex gap-2">
           {TIME_TAGS.map((t) => (
             <button type="button" key={t} onClick={() => setForm({ ...form, time_tags: toggle(form.time_tags, t) })}

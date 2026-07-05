@@ -123,7 +123,7 @@ export default function BulkUploadForm() {
         name: row.name,
         location: row.location || null,
         category: row.category,
-        rating: 0,
+        base_rating: 0,
         restaurant_type: null,
         time_tags: [],
         companion_tags: [],

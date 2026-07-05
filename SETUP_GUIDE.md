@@ -75,7 +75,8 @@ MAKA는 Next.js + Supabase(로그인·DB·사진저장) + Vercel(배포) + Googl
 7. Supabase SQL Editor에서 `supabase/migration_v7.sql` 내용을 전체 실행합니다. (숨겨진 "월 식단표" 페이지용 테이블/함수 추가, 기본 비밀번호 `maka2026`)
 8. Supabase SQL Editor에서 `supabase/migration_v8.sql` 내용을 전체 실행합니다. (방문 로그 테이블 추가 — 관리자 "Visitors" 대시보드용)
 9. Supabase SQL Editor에서 `supabase/migration_v9.sql` 내용을 전체 실행합니다. (협찬 광고 테이블 추가 — 관리자 "Ads" 메뉴용)
-10. GitHub Desktop으로 새 코드를 push 하면 Vercel이 자동으로 재배포합니다.
+10. Supabase SQL Editor에서 `supabase/migration_v10.sql` 내용을 전체 실행합니다. (댓글에 별점/사진 컬럼 추가, 맛집 rating 자동 계산 트리거 추가, 게스트 사진 업로드 허용)
+11. GitHub Desktop으로 새 코드를 push 하면 Vercel이 자동으로 재배포합니다.
 
 ## 이번 업데이트로 추가된 기능
 
@@ -96,9 +97,11 @@ MAKA는 Next.js + Supabase(로그인·DB·사진저장) + Vercel(배포) + Googl
 - 관리자 전용 "Visitors" 메뉴에서 방문자 대시보드를 볼 수 있습니다. 최근 30일 일별 방문 그래프와, 구글 계정별(비로그인은 "Guest"로 묶어서) 방문 횟수 테이블을 함께 보여줍니다.
 - 관리자 메뉴가 "Bulk upload / Site settings / Manage places / Visitors" 4개 버튼으로 나열되던 것을 "Admin" 버튼 하나로 통합했습니다. 클릭하면 왼쪽에 메뉴 목록, 오른쪽에 선택한 화면이 나오는 관리자 전용 페이지로 이동합니다.
 - 모든 페이지 맨 아래에 Contact 정보(waller9929@gmail.com)를 표시하는 Footer가 추가되었습니다.
-- 관리자 "Manage places" 화면에서 이름/위치/카테고리/식당유형과 함께 평점(rating)도 목록에서 바로 수정할 수 있습니다.
+- 관리자 "Manage places" 화면에서 이름/위치/카테고리/식당유형과 함께 평점(Base rating)도 목록에서 바로 수정할 수 있습니다. (이후 댓글 별점 자동 계산 기능이 추가되면서 이 값은 "기준값" 역할로 바뀌었습니다 — 아래 항목 참고)
 - Value/Standard/Premium 식당유형 배지 색상을 좀 더 눈에 띄는 파스텔톤(초록/하늘색/핑크)으로 바꿨습니다.
 - 관리자 메뉴에 "Ads"가 추가되어, 협찬(광고) 업체명·이미지·링크·게재 기간을 등록/삭제할 수 있습니다. 등록된 광고 중 게재 기간에 해당하는 것 하나가 메인 페이지 필터바 바로 위에 "Sponsored" 표시와 함께 노출되고, 여러 개가 겹치면 방문할 때마다 무작위로 하나가 보여집니다. 게재 기간이 지나면 자동으로 노출에서 빠집니다.
+- 댓글을 남길 때 별점(1~5, 선택)과 사진(최대 4장, 선택)을 함께 남길 수 있습니다. 비로그인 댓글에도 동일하게 적용됩니다.
+- 맛집의 전체 평점(Rating)이 이제 자동으로 계산됩니다. 관리자/작성자가 입력한 값(Manage places의 "Base rating" 또는 상세페이지 수정화면의 "Base rating")을 "가상 댓글 1개"로 취급하고, 여기에 별점을 남긴 실제 댓글들을 더해 평균을 냅니다. 댓글이 추가/수정/삭제되거나 Base rating이 바뀔 때마다 자동으로 재계산됩니다.
 
 ## 대량 맛집 업로드 (구글 지도 저장 리스트 가져오기)
 

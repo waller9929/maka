@@ -6,10 +6,10 @@
 -- ==========================================================
 
 insert into public.places
-  (name, location, category, rating, restaurant_type,
+  (name, location, category, base_rating, restaurant_type,
    time_tags, companion_tags, comment, created_by)
 select
-  v.name, v.location, v.category, v.rating, v.restaurant_type,
+  v.name, v.location, v.category, v.base_rating, v.restaurant_type,
   v.time_tags, v.companion_tags, v.comment,
   (select id from public.profiles where email = 'waller9929@gmail.com')
 from (
@@ -26,5 +26,5 @@ from (
     ('Pasta Loca', 'Nonhyeon-dong', 'Western', 4.0, 'Standard',
       array['Dinner','Weekend'], array['With family','With friends/colleagues'],
       'Generous portions for the price, wide variety of pasta.')
-) as v(name, location, category, rating, restaurant_type, time_tags, companion_tags, comment)
+) as v(name, location, category, base_rating, restaurant_type, time_tags, companion_tags, comment)
 where exists (select 1 from public.profiles where email = 'waller9929@gmail.com');

@@ -107,7 +107,7 @@ export default function PlaceForm() {
           name: name.trim(),
           location: location.trim() || null,
           category,
-          rating,
+          base_rating: rating,
           restaurant_type: restaurantType,
           time_tags: timeTags,
           companion_tags: companionTags,

@@ -11,6 +11,7 @@ type PlaceRow = {
   location: string | null;
   category: string;
   restaurant_type: string | null;
+  base_rating: number;
   rating: number;
   created_at: string;
 };
@@ -38,7 +39,7 @@ export default function AdminPlacesManager({ initialPlaces }: { initialPlaces: P
         orig.location !== p.location ||
         orig.category !== p.category ||
         orig.restaurant_type !== p.restaurant_type ||
-        orig.rating !== p.rating
+        orig.base_rating !== p.base_rating
       ) {
         ids.add(p.id);
       }
@@ -99,7 +100,7 @@ export default function AdminPlacesManager({ initialPlaces }: { initialPlaces: P
             location: p.location,
             category: p.category,
             restaurant_type: p.restaurant_type,
-            rating: p.rating,
+            base_rating: p.base_rating,
             updated_at: new Date().toISOString(),
           })
           .eq("id", id);
@@ -149,6 +150,11 @@ export default function AdminPlacesManager({ initialPlaces }: { initialPlaces: P
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
+      <p className="text-xs text-brand-gray">
+        Base rating seeds the place's overall rating (shown as "Rating" across the site); the
+        displayed rating is then automatically averaged in with any ratings left in comments.
+      </p>
+
       <div className="card overflow-hidden">
         {places.length === 0 ? (
           <p className="p-6 text-sm text-brand-gray text-center">No places to manage.</p>
@@ -197,16 +203,21 @@ export default function AdminPlacesManager({ initialPlaces }: { initialPlaces: P
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
-                <input
-                  type="number"
-                  min={0}
-                  max={5}
-                  step={0.1}
-                  value={place.rating}
-                  onChange={(e) => updateField(place.id, "rating", parseFloat(e.target.value) || 0)}
-                  className="text-sm"
-                  placeholder="Rating"
-                />
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    min={0}
+                    max={5}
+                    step={0.1}
+                    value={place.base_rating}
+                    onChange={(e) => updateField(place.id, "base_rating", parseFloat(e.target.value) || 0)}
+                    className="text-sm w-full"
+                    placeholder="Base rating"
+                  />
+                  <span className="text-xs text-brand-gray flex-shrink-0" title="Current displayed rating">
+                    → {Number(place.rating ?? 0).toFixed(1)}
+                  </span>
+                </div>
               </div>
             </div>
           ))
