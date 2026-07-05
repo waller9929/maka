@@ -108,6 +108,9 @@ export default function Navbar() {
                   <Link href="/admin/places" className="tag bg-brand-blueLight text-brand-blueDark">
                     Manage places
                   </Link>
+                  <Link href="/admin/visitors" className="tag bg-brand-blueLight text-brand-blueDark">
+                    Visitors
+                  </Link>
                 </>
               )}
               <button onClick={signOut} className="text-white/60 hover:text-white text-xs">

@@ -48,10 +48,11 @@ export default async function HomePage({
 
   const homeTitle = settings?.home_title ?? "MAKA - Work Hard, Eat Well";
 
-  // Site visit counter. Awaited (rather than fire-and-forget) since
+  // Site visit counter + per-visit log (day/user breakdown for the admin
+  // "Visitors" dashboard). Awaited (rather than fire-and-forget) since
   // serverless functions can be frozen right after the response is sent,
   // which would drop an un-awaited background call.
-  await supabase.rpc("increment_visit_count");
+  await supabase.rpc("log_home_visit");
 
   let query = supabase
     .from("places")

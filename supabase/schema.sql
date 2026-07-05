@@ -237,6 +237,34 @@ $$;
 grant execute on function public.increment_visit_count() to anon, authenticated;
 grant execute on function public.increment_place_view(uuid) to anon, authenticated;
 
+-- 8b. 방문 로그 (일별/사용자별 방문자 대시보드용)
+create table if not exists public.visit_logs (
+  id bigint generated always as identity primary key,
+  user_id uuid references public.profiles(id),
+  visited_at timestamptz not null default now()
+);
+
+alter table public.visit_logs enable row level security;
+
+create policy "only admins can view visit logs"
+  on public.visit_logs for select
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
+
+-- No insert policy on purpose — rows are only ever written through
+-- log_home_visit(), which bypasses RLS the same way increment_visit_count() does.
+create or replace function public.log_home_visit()
+returns void
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  update public.app_settings set visit_count = visit_count + 1 where id = 1;
+  insert into public.visit_logs (user_id, visited_at) values (auth.uid(), now());
+end;
+$$;
+
+grant execute on function public.log_home_visit() to anon, authenticated;
+
 -- 9. 숨겨진 "월 식단표" 페이지 (홈페이지 우측 하단의 눈에 잘 안 띄는
 --    버튼으로 접속, 비밀번호 입력 후 열람 가능)
 create table if not exists public.secret_page (

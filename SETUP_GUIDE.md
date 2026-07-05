@@ -73,7 +73,8 @@ MAKA는 Next.js + Supabase(로그인·DB·사진저장) + Vercel(배포) + Googl
 5. Supabase SQL Editor에서 `supabase/migration_v5.sql` 내용을 전체 실행합니다. (비로그인 댓글 허용, 방문자 카운트 컬럼/함수 추가)
 6. Supabase SQL Editor에서 `supabase/migration_v6.sql` 내용을 전체 실행합니다. (카테고리 목록 변경 — 기존 "Cafe/Dessert" 데이터를 "Cafe"로 이전)
 7. Supabase SQL Editor에서 `supabase/migration_v7.sql` 내용을 전체 실행합니다. (숨겨진 "월 식단표" 페이지용 테이블/함수 추가, 기본 비밀번호 `maka2026`)
-8. GitHub Desktop으로 새 코드를 push 하면 Vercel이 자동으로 재배포합니다.
+8. Supabase SQL Editor에서 `supabase/migration_v8.sql` 내용을 전체 실행합니다. (방문 로그 테이블 추가 — 관리자 "Visitors" 대시보드용)
+9. GitHub Desktop으로 새 코드를 push 하면 Vercel이 자동으로 재배포합니다.
 
 ## 이번 업데이트로 추가된 기능
 
@@ -90,7 +91,8 @@ MAKA는 Next.js + Supabase(로그인·DB·사진저장) + Vercel(배포) + Googl
 - 로그인하지 않아도 댓글을 남길 수 있습니다. 이름(선택) 입력란에 이름을 적으면 표시되고, 비워두면 "Anonymous"로 표시됩니다. 비로그인 댓글은 포인트가 적립되지 않습니다.
 - 사이트 전체 누적 방문자 수(관리자 "Site settings" 페이지에서만 확인 가능)와 각 맛집 상세페이지별 조회수가 집계됩니다.
 - 카테고리 목록이 Western(양식) / Cafe(카페) / Korean(한식) / Indonesian(인니식) / Japanese(일식) / Seafood(해산물) / Chinese(중식) / Buffet(뷔페) / Other(기타) / Dessert(디저트) 10종으로 확장되었습니다. 기존 "Cafe/Dessert" 맛집은 일단 "Cafe"로 옮겨지며, 디저트 전문점이면 상세페이지에서 개별로 "Dessert"로 수정해주세요.
-- 홈페이지 우측 하단 구석에 거의 안 보이는 작은 숨김 링크가 있습니다. 누르면 비밀번호를 물어보는 페이지(`/monthly-menu`)로 이동하고, 맞으면 관리자가 올려둔 "월 식단표" 이미지/파일을 보여줍니다. 기본 비밀번호는 `maka2026`이며, 관리자 "Site settings" 페이지에서 비밀번호와 식단표 파일을 바꿀 수 있습니다. (비밀번호는 DB에서 직접 대조만 하고 브라우저로 전달되지 않아 안전합니다.)
+- 메인 페이지의 "Today's picks" 제목 글자 자체가 숨김 링크입니다. 누르면 비밀번호를 물어보는 페이지(`/monthly-menu`)로 이동하고, 맞으면 관리자가 올려둔 "월 식단표" 이미지/파일을 보여줍니다. 기본 비밀번호는 `maka2026`이며, 관리자 "Site settings" 페이지에서 비밀번호와 식단표 파일을 바꿀 수 있습니다. (비밀번호는 DB에서 직접 대조만 하고 브라우저로 전달되지 않아 안전합니다.)
+- 관리자 전용 "Visitors" 메뉴에서 방문자 대시보드를 볼 수 있습니다. 최근 30일 일별 방문 그래프와, 구글 계정별(비로그인은 "Guest"로 묶어서) 방문 횟수 테이블을 함께 보여줍니다.
 
 ## 대량 맛집 업로드 (구글 지도 저장 리스트 가져오기)
 
