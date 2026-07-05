@@ -35,7 +35,6 @@ export default function PlaceForm() {
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState<string>(CATEGORIES[0]);
   const [rating, setRating] = useState(5);
-  const [valueRating, setValueRating] = useState(5);
   const [restaurantType, setRestaurantType] = useState<string>(RESTAURANT_TYPES[0]);
   const [timeTags, setTimeTags] = useState<string[]>([]);
   const [companionTags, setCompanionTags] = useState<string[]>([]);
@@ -109,7 +108,6 @@ export default function PlaceForm() {
           location: location.trim() || null,
           category,
           rating,
-          value_rating: valueRating,
           restaurant_type: restaurantType,
           time_tags: timeTags,
           companion_tags: companionTags,
@@ -162,6 +160,7 @@ export default function PlaceForm() {
             onPaste={(e) => {
               const pasted = e.clipboardData.getData("text");
               if (pasted) {
+                e.preventDefault();
                 setMapsUrl(pasted);
                 setTimeout(() => fetchFromMapsLink(), 0);
               }
@@ -223,15 +222,9 @@ export default function PlaceForm() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-sm font-medium block mb-1">Rating (1-5)</label>
-          <input type="number" min={1} max={5} step={0.1} value={rating} onChange={(e) => setRating(Number(e.target.value))} className="w-full" />
-        </div>
-        <div>
-          <label className="text-sm font-medium block mb-1">Value for money (1-5)</label>
-          <input type="number" min={1} max={5} step={0.1} value={valueRating} onChange={(e) => setValueRating(Number(e.target.value))} className="w-full" />
-        </div>
+      <div>
+        <label className="text-sm font-medium block mb-1">Rating (1-5)</label>
+        <input type="number" min={1} max={5} step={0.1} value={rating} onChange={(e) => setRating(Number(e.target.value))} className="w-full" />
       </div>
 
       <div>

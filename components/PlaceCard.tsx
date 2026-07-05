@@ -9,7 +9,6 @@ export type Place = {
   location: string | null;
   category: string;
   rating: number;
-  value_rating: number;
   restaurant_type: string | null;
   photo_url: string | null;
   time_tags: string[];

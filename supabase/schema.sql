@@ -57,7 +57,6 @@ create table if not exists public.places (
   location text,
   category text not null,
   rating numeric(2,1) not null default 0,
-  value_rating numeric(2,1) not null default 0,
   restaurant_type text,
   photo_url text,
   menu_photo_url text,

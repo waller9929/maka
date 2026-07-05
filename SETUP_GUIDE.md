@@ -69,7 +69,8 @@ MAKA는 Next.js + Supabase(로그인·DB·사진저장) + Vercel(배포) + Googl
 1. Supabase SQL Editor에서 `supabase/migration_v2.sql` 내용을 전체 실행합니다. (방문일 필드 제거, 구글 지도 링크 컬럼 추가, 레벨 이름 영문화, 기존 한글 데이터를 영문으로 변환)
 2. 3단계를 따라 Google Places API 키를 발급받고, Vercel Environment Variables에 `GOOGLE_PLACES_API_KEY`를 추가합니다.
 3. Supabase SQL Editor에서 `supabase/migration_v3.sql` 내용을 전체 실행합니다. (가격대 필드를 식당 유형(Value/Standard/Premium)으로 교체, 관리자가 홈페이지 타이틀을 수정할 수 있는 설정 테이블 추가)
-4. GitHub Desktop으로 새 코드를 push 하면 Vercel이 자동으로 재배포합니다.
+4. Supabase SQL Editor에서 `supabase/migration_v4.sql` 내용을 전체 실행합니다. (가성비(Value for money) 컬럼 제거)
+5. GitHub Desktop으로 새 코드를 push 하면 Vercel이 자동으로 재배포합니다.
 
 ## 이번 업데이트로 추가된 기능
 
@@ -77,6 +78,11 @@ MAKA는 Next.js + Supabase(로그인·DB·사진저장) + Vercel(배포) + Googl
 - 맛집 등록/수정 화면에서 "Restaurant type"을 드롭다운이 아닌 박스 클릭으로 Value/Standard/Premium 중 선택합니다.
 - 메인 페이지 상단에 "Today's picks" 섹션이 추가되어, 매번 페이지를 열 때마다 서로 다른 카테고리에서 무작위로 3곳을 추천합니다.
 - 관리자 계정으로 로그인하면 우측 상단 "Site settings" 메뉴에서 메인 페이지 상단 타이틀 문구(기본값: "MAKA - Work Hard, Eat Well")를 직접 수정할 수 있습니다.
+- "가성비(Value for money)" 별점 기능은 제거되었습니다. 대신 Restaurant type(Value/Standard/Premium)이 그 역할을 대신합니다.
+- 맛집 위치(location) 텍스트를 기준으로 "Region: Indonesia / Other" 필터가 추가되었고, Indonesia를 선택하면 주요 도시(Jakarta, Bandung, Surabaya, Bali 등) 하위 필터가 나타납니다. 별도 입력 없이 자동으로 판단됩니다.
+- 메인 페이지에 "Today's picks" 옆으로 "Top 10" 랭킹이 추가되었습니다 (평점 높은 순, 동점이면 댓글 수 많은 순, 필터/검색이 없을 때만 표시).
+- 관리자 계정의 "Manage places" 메뉴에서 등록된 맛집을 개별 삭제하거나, "Delete all" 버튼으로 전체를 한 번에 삭제할 수 있습니다 (되돌릴 수 없으니 신중하게 사용하세요).
+- Google Maps 링크 붙여넣기 시 값이 중복 입력되던 버그를 수정했습니다.
 
 ## 대량 맛집 업로드 (구글 지도 저장 리스트 가져오기)
 

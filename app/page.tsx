@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import FilterBar from "@/components/FilterBar";
 import PlaceCard, { type Place } from "@/components/PlaceCard";
+import Top10List, { rankTop10 } from "@/components/Top10List";
+import { detectRegion, detectCity } from "@/lib/region";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +28,14 @@ function pickRecommended(places: Place[]): Place[] {
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: { category?: string; time?: string; companion?: string; q?: string };
+  searchParams: {
+    category?: string;
+    time?: string;
+    companion?: string;
+    q?: string;
+    region?: string;
+    city?: string;
+  };
 }) {
   const supabase = createClient();
 
@@ -40,7 +49,7 @@ export default async function HomePage({
 
   let query = supabase
     .from("places")
-    .select("id, name, location, category, rating, value_rating, restaurant_type, photo_url, time_tags, companion_tags, profiles(name), comments(count)")
+    .select("id, name, location, category, rating, restaurant_type, photo_url, time_tags, companion_tags, profiles(name), comments(count)")
     .order("created_at", { ascending: false });
 
   if (searchParams.category) query = query.eq("category", searchParams.category);
@@ -56,17 +65,32 @@ export default async function HomePage({
     console.error("[env check] ANON_KEY length =", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length ?? 0);
   }
 
-  const places: Place[] = (data ?? []).map((p: any) => ({
+  let places: Place[] = (data ?? []).map((p: any) => ({
     ...p,
     recommender_name: p.profiles?.name ?? null,
     comment_count: p.comments?.[0]?.count ?? 0,
   }));
 
-  // Only show recommendations when no filters/search are active — this is
-  // the unfiltered "today's picks" view, not a filtered result set.
+  // Region/city aren't real columns — they're derived from the location
+  // text, so we filter for them here in JS after fetching.
+  if (searchParams.region) {
+    places = places.filter((p) => detectRegion(p.location) === searchParams.region);
+  }
+  if (searchParams.city) {
+    places = places.filter((p) => detectCity(p.location) === searchParams.city);
+  }
+
+  // Only show recommendations/ranking when no filters/search are active —
+  // this is the unfiltered "browse everything" view, not a filtered result set.
   const isUnfiltered =
-    !searchParams.category && !searchParams.time && !searchParams.companion && !searchParams.q;
+    !searchParams.category &&
+    !searchParams.time &&
+    !searchParams.companion &&
+    !searchParams.q &&
+    !searchParams.region &&
+    !searchParams.city;
   const recommended = isUnfiltered ? pickRecommended(places) : [];
+  const top10 = isUnfiltered ? rankTop10(places) : [];
 
   return (
     <div>
@@ -74,16 +98,26 @@ export default async function HomePage({
 
       {error && <p className="text-sm text-red-600">Couldn't load the list: {error.message}</p>}
 
-      {recommended.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-base font-medium mb-1">Today's picks</h2>
-          <p className="text-xs text-brand-gray mb-3">
-            Three random picks from three different categories.
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {recommended.map((place) => (
-              <PlaceCard key={place.id} place={place} />
-            ))}
+      {isUnfiltered && (recommended.length > 0 || top10.length > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <h2 className="text-base font-medium mb-1">Today's picks</h2>
+            <p className="text-xs text-brand-gray mb-3">
+              Three random picks from three different categories.
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-1 gap-3">
+              {recommended.map((place) => (
+                <PlaceCard key={place.id} place={place} />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h2 className="text-base font-medium mb-1">Top 10</h2>
+            <p className="text-xs text-brand-gray mb-3">
+              Ranked by rating, then by comment count.
+            </p>
+            <Top10List places={top10} />
           </div>
         </div>
       )}

@@ -18,7 +18,6 @@ export type PlaceDetailData = {
   location: string | null;
   category: string;
   rating: number;
-  value_rating: number;
   restaurant_type: string | null;
   photo_url: string | null;
   menu_photo_url: string | null;
@@ -62,7 +61,6 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
         location: form.location,
         category: form.category,
         rating: form.rating,
-        value_rating: form.value_rating,
         restaurant_type: form.restaurant_type,
         time_tags: form.time_tags,
         companion_tags: form.companion_tags,
@@ -109,10 +107,7 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
             </button>
           ))}
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <input type="number" min={1} max={5} step={0.1} value={form.rating} onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })} className="w-full" />
-          <input type="number" min={1} max={5} step={0.1} value={form.value_rating} onChange={(e) => setForm({ ...form, value_rating: Number(e.target.value) })} className="w-full" />
-        </div>
+        <input type="number" min={1} max={5} step={0.1} value={form.rating} onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })} className="w-full" placeholder="Rating (1-5)" />
         <div className="flex gap-2">
           {TIME_TAGS.map((t) => (
             <button type="button" key={t} onClick={() => setForm({ ...form, time_tags: toggle(form.time_tags, t) })}
@@ -161,7 +156,6 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
           </div>
           <div className="text-right">
             <StarRating value={place.rating} />
-            <p className="text-xs text-brand-gray mt-1">Value ★ {Number(place.value_rating ?? 0).toFixed(1)}</p>
           </div>
         </div>
 
