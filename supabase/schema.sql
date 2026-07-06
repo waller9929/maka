@@ -420,6 +420,206 @@ create policy "only admins can delete sponsored ads"
   on public.sponsored_ads for delete
   using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
 
+-- 11. 게시판 (자유게시판 / 공지사항 / 중고거래·나눔장터 / Q&A / 인니 소식 / 식당 경험담)
+-- Notice는 관리자만 작성 가능, News는 RSS 크롤러(insert_news_article 함수)를 통해서만
+-- 채워지고 클라이언트가 직접 쓸 수 없습니다. 나머지 카테고리는 맛집 댓글처럼
+-- 비로그인 게스트도 이름만 선택 입력하고 작성할 수 있습니다.
+create table if not exists public.board_posts (
+  id uuid primary key default gen_random_uuid(),
+  category text not null,
+  title text not null,
+  content text not null,
+  image_urls text[] not null default '{}',
+  source_name text,
+  source_url text,
+  pinned boolean not null default false,
+  view_count integer not null default 0,
+  created_by uuid references public.profiles(id),
+  guest_name text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.board_posts enable row level security;
+
+create policy "board posts are viewable by everyone"
+  on public.board_posts for select
+  using (true);
+
+create policy "members and guests can insert non-notice non-news posts"
+  on public.board_posts for insert
+  with check (
+    category in ('Free', 'Marketplace', 'QnA', 'Experience')
+    and (
+      (auth.uid() is not null and created_by = auth.uid())
+      or (auth.uid() is null and created_by is null)
+    )
+  );
+
+create policy "only admins can insert notice posts"
+  on public.board_posts for insert
+  with check (
+    category = 'Notice'
+    and created_by = auth.uid()
+    and exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true)
+  );
+
+create policy "owners can update their own posts"
+  on public.board_posts for update
+  using (auth.uid() = created_by);
+
+create policy "admins can update any post"
+  on public.board_posts for update
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
+
+create policy "only admins can delete posts"
+  on public.board_posts for delete
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
+
+create table if not exists public.board_comments (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid not null references public.board_posts(id) on delete cascade,
+  content text not null,
+  created_by uuid references public.profiles(id),
+  guest_name text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.board_comments enable row level security;
+
+create policy "board comments are viewable by everyone"
+  on public.board_comments for select
+  using (true);
+
+create policy "anyone can insert board comments"
+  on public.board_comments for insert
+  with check (
+    (auth.uid() is not null and created_by = auth.uid())
+    or (auth.uid() is null and created_by is null)
+  );
+
+create policy "owners can update their own board comments"
+  on public.board_comments for update
+  using (auth.uid() = created_by);
+
+create policy "only admins can delete board comments"
+  on public.board_comments for delete
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
+
+-- 게시글 작성 +10 (로그인 사용자만), 댓글 작성 +3, 내 글에 댓글 달리면 +1
+-- (맛집 포인트 정책과 동일한 기준)
+create or replace function public.award_points_on_board_post_insert()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if new.created_by is not null then
+    update public.profiles set points = points + 10 where id = new.created_by;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_board_post_created on public.board_posts;
+create trigger on_board_post_created
+  after insert on public.board_posts
+  for each row execute procedure public.award_points_on_board_post_insert();
+
+create or replace function public.award_points_on_board_comment_insert()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  post_owner uuid;
+begin
+  if new.created_by is not null then
+    update public.profiles set points = points + 3 where id = new.created_by;
+  end if;
+
+  select created_by into post_owner from public.board_posts where id = new.post_id;
+
+  if post_owner is not null and (new.created_by is null or post_owner <> new.created_by) then
+    update public.profiles set points = points + 1 where id = post_owner;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists on_board_comment_created on public.board_comments;
+create trigger on_board_comment_created
+  after insert on public.board_comments
+  for each row execute procedure public.award_points_on_board_comment_insert();
+
+-- "인니 소식" 게시판에 쓸 RSS 피드 소스 목록 (관리자가 Admin > Board 화면에서 관리)
+create table if not exists public.rss_feeds (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  feed_url text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.rss_feeds enable row level security;
+
+create policy "only admins can view rss feeds"
+  on public.rss_feeds for select
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
+
+create policy "only admins can insert rss feeds"
+  on public.rss_feeds for insert
+  with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
+
+create policy "only admins can delete rss feeds"
+  on public.rss_feeds for delete
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
+
+-- Called only by the /api/cron/fetch-news route (with the anon key) to insert
+-- a News-category board post. Bypasses RLS as a SECURITY DEFINER function,
+-- the same pattern used by log_home_visit()/get_meal_plan(). Skips articles
+-- that were already inserted (matched by source_url) so re-running the cron
+-- doesn't create duplicates.
+create or replace function public.insert_news_article(
+  p_title text,
+  p_content text,
+  p_source_name text,
+  p_source_url text
+)
+returns uuid
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  new_id uuid;
+begin
+  if p_source_url is not null and exists (
+    select 1 from public.board_posts where category = 'News' and source_url = p_source_url
+  ) then
+    return null;
+  end if;
+
+  insert into public.board_posts (category, title, content, source_name, source_url, created_by, guest_name)
+  values ('News', p_title, p_content, p_source_name, p_source_url, null, p_source_name)
+  returning id into new_id;
+
+  return new_id;
+end;
+$$;
+
+grant execute on function public.insert_news_article(text, text, text, text) to anon, authenticated;
+
+create or replace function public.increment_board_post_view(post_id uuid)
+returns void
+language sql
+security definer set search_path = public
+as $$
+  update public.board_posts set view_count = view_count + 1 where id = post_id;
+$$;
+
+grant execute on function public.increment_board_post_view(uuid) to anon, authenticated;
+
 -- ==========================================================
 -- Storage 버킷 (사진 / 메뉴판 업로드)
 -- SQL Editor 에서 실행하거나, 대시보드 Storage 메뉴에서

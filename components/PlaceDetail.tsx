@@ -41,6 +41,7 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(initial);
   const [saving, setSaving] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
@@ -56,6 +57,17 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
 
   async function saveChanges() {
     setSaving(true);
+    let photo_url = form.photo_url;
+    if (photoFile) {
+      const ext = photoFile.name.split(".").pop();
+      const path = `photos/${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("place-photos").upload(path, photoFile);
+      if (!uploadError) {
+        const { data } = supabase.storage.from("place-photos").getPublicUrl(path);
+        photo_url = data.publicUrl;
+      }
+    }
+
     const { error } = await supabase
       .from("places")
       .update({
@@ -67,12 +79,14 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
         time_tags: form.time_tags,
         companion_tags: form.companion_tags,
         comment: form.comment,
+        photo_url,
         updated_at: new Date().toISOString(),
       })
       .eq("id", place.id);
     setSaving(false);
     if (!error) {
-      setPlace(form);
+      setPlace({ ...form, photo_url });
+      setPhotoFile(null);
       setEditing(false);
       router.refresh();
     }
@@ -88,6 +102,13 @@ export default function PlaceDetail({ initial }: { initial: PlaceDetailData }) {
   if (editing) {
     return (
       <div className="card p-5 space-y-3">
+        <div>
+          <label className="text-sm font-medium block mb-1">Main image</label>
+          {form.photo_url && !photoFile && (
+            <p className="text-xs text-brand-gray mb-1">Current image is kept unless you upload a new one below.</p>
+          )}
+          <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)} />
+        </div>
         <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full" />
         <input value={form.location ?? ""} onChange={(e) => setForm({ ...form, location: e.target.value })} className="w-full" placeholder="Location" />
         <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full">

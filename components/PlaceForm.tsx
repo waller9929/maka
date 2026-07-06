@@ -31,6 +31,15 @@ export default function PlaceForm() {
   const [fetchedPhotoDataUrl, setFetchedPhotoDataUrl] = useState<string | null>(null);
   const [resolvedMapsUrl, setResolvedMapsUrl] = useState<string | null>(null);
 
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const [searchResults, setSearchResults] = useState<
+    { place_id: string; name: string; formatted_address: string | null }[]
+  >([]);
+  const [selectingId, setSelectingId] = useState<string | null>(null);
+
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState<string>(CATEGORIES[0]);
@@ -70,6 +79,56 @@ export default function PlaceForm() {
       setMapsError(err.message ?? "Could not fetch info from that link.");
     } finally {
       setMapsLoading(false);
+    }
+  }
+
+  async function runSearch() {
+    if (!searchQuery.trim()) return;
+    setSearchLoading(true);
+    setSearchError("");
+    try {
+      const res = await fetch("/api/places-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: searchQuery.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Search failed.");
+      setSearchResults(data.results ?? []);
+    } catch (err: any) {
+      setSearchError(err.message ?? "Could not search Google.");
+    } finally {
+      setSearchLoading(false);
+    }
+  }
+
+  async function selectSearchResult(place_id: string) {
+    setSelectingId(place_id);
+    setSearchError("");
+    try {
+      const res = await fetch("/api/places-select", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ place_id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not load that place.");
+
+      if (data.name) setName(data.name);
+      if (data.location) setLocation(data.location);
+      if (data.category) setCategory(data.category);
+      if (data.photoDataUrl) setFetchedPhotoDataUrl(data.photoDataUrl);
+      if (data.googleMapsUrl) {
+        setResolvedMapsUrl(data.googleMapsUrl);
+        setMapsUrl(data.googleMapsUrl);
+      }
+      setShowSearchModal(false);
+      setSearchQuery("");
+      setSearchResults([]);
+    } catch (err: any) {
+      setSearchError(err.message ?? "Could not load that place.");
+    } finally {
+      setSelectingId(null);
     }
   }
 
@@ -150,7 +209,86 @@ export default function PlaceForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card p-5 space-y-4">
+    <form onSubmit={handleSubmit} className="card p-5 space-y-4 relative">
+      {showSearchModal && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-card w-full max-w-md max-h-[80vh] flex flex-col">
+            <div className="p-4 border-b border-brand-bg flex items-center justify-between">
+              <p className="text-sm font-medium">Search on Google</p>
+              <button
+                type="button"
+                onClick={() => setShowSearchModal(false)}
+                className="text-brand-gray text-sm"
+              >
+                Close
+              </button>
+            </div>
+            <div className="p-4 space-y-3 overflow-y-auto">
+              <div className="flex gap-2">
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      runSearch();
+                    }
+                  }}
+                  placeholder="Restaurant name, e.g. Sate Khas Senayan"
+                  className="flex-1"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={runSearch}
+                  disabled={searchLoading || !searchQuery.trim()}
+                  className="btn-primary px-3 text-sm whitespace-nowrap"
+                >
+                  {searchLoading ? "Searching..." : "Search"}
+                </button>
+              </div>
+
+              {searchError && <p className="text-xs text-red-600">{searchError}</p>}
+
+              {searchResults.length === 0 && !searchLoading && (
+                <p className="text-xs text-brand-gray">Search for a restaurant name to see matching results from Google.</p>
+              )}
+
+              <div className="space-y-2">
+                {searchResults.map((r) => (
+                  <button
+                    key={r.place_id}
+                    type="button"
+                    onClick={() => selectSearchResult(r.place_id)}
+                    disabled={selectingId === r.place_id}
+                    className="w-full text-left card p-3 hover:bg-brand-bg transition-colors"
+                  >
+                    <p className="text-sm font-medium">{r.name}</p>
+                    {r.formatted_address && <p className="text-xs text-brand-gray mt-0.5">{r.formatted_address}</p>}
+                    {selectingId === r.place_id && <p className="text-xs text-brand-blue mt-1">Loading details...</p>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div>
+        <label className="text-sm font-medium block mb-1">Find on Google</label>
+        <button
+          type="button"
+          onClick={() => setShowSearchModal(true)}
+          className="btn-outline w-full py-2 text-sm"
+        >
+          Search on Google →
+        </button>
+        <p className="text-xs text-brand-gray mt-1">
+          Search for the restaurant and pick it from the results — name, location, category and a
+          photo will be filled in automatically.
+        </p>
+      </div>
+
       <div>
         <label className="text-sm font-medium block mb-1">Google Maps link (optional)</label>
         <div className="flex gap-2">

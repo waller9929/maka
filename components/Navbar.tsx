@@ -81,6 +81,10 @@ export default function Navbar() {
         </Link>
 
         <nav className="flex items-center gap-4 text-sm">
+          <Link href="/board" className="text-white/80 hover:text-white">
+            Board
+          </Link>
+
           {profile?.is_admin && (
             <Link href="/leaderboard" className="text-white/80 hover:text-white">
               Leaderboard
