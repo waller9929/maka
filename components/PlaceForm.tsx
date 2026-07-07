@@ -39,6 +39,8 @@ export default function PlaceForm() {
     { place_id: string; name: string; formatted_address: string | null }[]
   >([]);
   const [selectingId, setSelectingId] = useState<string | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [usingLocation, setUsingLocation] = useState(false);
 
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
@@ -82,15 +84,18 @@ export default function PlaceForm() {
     }
   }
 
-  async function runSearch() {
-    if (!searchQuery.trim()) return;
+  async function runSearch(coords?: { lat: number; lng: number }) {
+    if (!coords && !searchQuery.trim()) return;
     setSearchLoading(true);
     setSearchError("");
     try {
       const res = await fetch("/api/places-search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: searchQuery.trim() }),
+        body: JSON.stringify({
+          query: searchQuery.trim(),
+          ...(coords ? { lat: coords.lat, lng: coords.lng } : {}),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Search failed.");
@@ -100,6 +105,27 @@ export default function PlaceForm() {
     } finally {
       setSearchLoading(false);
     }
+  }
+
+  function searchNearMe() {
+    if (!navigator.geolocation) {
+      setSearchError("Location isn't available in this browser.");
+      return;
+    }
+    setLocating(true);
+    setSearchError("");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocating(false);
+        setUsingLocation(true);
+        runSearch({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      },
+      () => {
+        setLocating(false);
+        setSearchError("Couldn't get your location. Check location permissions and try again.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   }
 
   async function selectSearchResult(place_id: string) {
@@ -227,7 +253,10 @@ export default function PlaceForm() {
               <div className="flex gap-2">
                 <input
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setUsingLocation(false);
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
@@ -240,7 +269,7 @@ export default function PlaceForm() {
                 />
                 <button
                   type="button"
-                  onClick={runSearch}
+                  onClick={() => runSearch()}
                   disabled={searchLoading || !searchQuery.trim()}
                   className="btn-primary px-3 text-sm whitespace-nowrap"
                 >
@@ -248,10 +277,23 @@ export default function PlaceForm() {
                 </button>
               </div>
 
+              <button
+                type="button"
+                onClick={searchNearMe}
+                disabled={locating || searchLoading}
+                className="btn-outline w-full py-1.5 text-sm"
+              >
+                {locating ? "Finding your location..." : "📍 Use my current location"}
+              </button>
+
               {searchError && <p className="text-xs text-red-600">{searchError}</p>}
 
+              {usingLocation && searchResults.length > 0 && !searchLoading && (
+                <p className="text-xs text-brand-gray">Showing restaurants near your current location.</p>
+              )}
+
               {searchResults.length === 0 && !searchLoading && (
-                <p className="text-xs text-brand-gray">Search for a restaurant name to see matching results from Google.</p>
+                <p className="text-xs text-brand-gray">Search for a restaurant name, or use your current location to find places nearby.</p>
               )}
 
               <div className="space-y-2">

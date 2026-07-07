@@ -4,6 +4,8 @@ import FilterBar from "@/components/FilterBar";
 import PlaceCard, { type Place } from "@/components/PlaceCard";
 import Top10List, { rankTop10 } from "@/components/Top10List";
 import SponsoredBanner, { pickActiveAd } from "@/components/SponsoredBanner";
+import BoardPreviewList from "@/components/BoardPreviewList";
+import T from "@/components/T";
 import { detectRegion, detectCity } from "@/lib/region";
 
 export const dynamic = "force-dynamic";
@@ -56,6 +58,14 @@ export default async function HomePage({
     .lte("starts_at", today)
     .or(`ends_at.is.null,ends_at.gte.${today}`);
   const activeAd = pickActiveAd(adsData ?? []);
+
+  const { data: boardPreviewData } = await supabase
+    .from("board_posts")
+    .select("id, category, title, pinned, created_at")
+    .order("pinned", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(5);
+  const boardPreview = boardPreviewData ?? [];
 
   // Site visit counter + per-visit log (day/user breakdown for the admin
   // "Visitors" dashboard). Awaited (rather than fire-and-forget) since
@@ -114,16 +124,16 @@ export default async function HomePage({
 
       {error && <p className="text-sm text-red-600">Couldn't load the list: {error.message}</p>}
 
-      {isUnfiltered && (recommended.length > 0 || top10.length > 0) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      {isUnfiltered && (recommended.length > 0 || top10.length > 0 || boardPreview.length > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div>
             <h2 className="text-base font-medium mb-1">
               <Link href="/monthly-menu" className="text-inherit no-underline">
-                Today's picks
+                <T k="todays_picks" />
               </Link>
             </h2>
             <p className="text-xs text-brand-gray mb-3">
-              Three random picks from three different categories.
+              <T k="todays_picks_sub" />
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-1 gap-3">
               {recommended.map((place) => (
@@ -133,11 +143,25 @@ export default async function HomePage({
           </div>
 
           <div>
-            <h2 className="text-base font-medium mb-1">Top 10</h2>
+            <h2 className="text-base font-medium mb-1">
+              <T k="top10" />
+            </h2>
             <p className="text-xs text-brand-gray mb-3">
-              Ranked by rating, then by comment count.
+              <T k="top10_sub" />
             </p>
             <Top10List places={top10} />
+          </div>
+
+          <div>
+            <h2 className="text-base font-medium mb-1">
+              <Link href="/board" className="text-inherit no-underline">
+                <T k="board_preview_title" />
+              </Link>
+            </h2>
+            <p className="text-xs text-brand-gray mb-3">
+              <T k="board_preview_sub" />
+            </p>
+            <BoardPreviewList posts={boardPreview} />
           </div>
         </div>
       )}
@@ -148,7 +172,7 @@ export default async function HomePage({
 
       {places.length === 0 ? (
         <div className="card p-10 text-center text-brand-gray text-sm">
-          No places yet. Be the first to add one!
+          <T k="no_places" />
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">

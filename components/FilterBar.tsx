@@ -3,11 +3,13 @@
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { CATEGORIES, TIME_TAGS, COMPANION_TAGS } from "@/lib/level";
 import { INDONESIA_CITIES } from "@/lib/region";
+import { useLanguage } from "@/lib/i18n-context";
 
 export default function FilterBar() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
 
   const category = searchParams.get("category") ?? "";
   const time = searchParams.get("time") ?? "";
@@ -28,7 +30,7 @@ export default function FilterBar() {
     <div className="space-y-3 mb-5">
       <input
         type="text"
-        placeholder="Search by name or location"
+        placeholder={t("search_placeholder")}
         defaultValue={q}
         onKeyDown={(e) => {
           if (e.key === "Enter") updateParam("q", (e.target as HTMLInputElement).value);
@@ -41,7 +43,7 @@ export default function FilterBar() {
           onClick={() => updateParam("category", "")}
           className={`tag border ${category === "" ? "bg-brand-blue text-white border-brand-blue" : "border-brand-gray text-brand-gray"}`}
         >
-          All
+          {t("all")}
         </button>
         {CATEGORIES.map((c) => (
           <button
@@ -56,7 +58,7 @@ export default function FilterBar() {
 
       <div className="flex flex-wrap gap-4">
         <div className="flex gap-2 items-center">
-          <span className="text-xs text-brand-gray">Time</span>
+          <span className="text-xs text-brand-gray">{t("time")}</span>
           {TIME_TAGS.map((t) => (
             <button
               key={t}
@@ -68,7 +70,7 @@ export default function FilterBar() {
           ))}
         </div>
         <div className="flex gap-2 items-center">
-          <span className="text-xs text-brand-gray">With</span>
+          <span className="text-xs text-brand-gray">{t("with")}</span>
           {COMPANION_TAGS.map((t) => (
             <button
               key={t}
@@ -83,12 +85,12 @@ export default function FilterBar() {
 
       <div className="flex flex-wrap gap-4">
         <div className="flex gap-2 items-center">
-          <span className="text-xs text-brand-gray">Region</span>
+          <span className="text-xs text-brand-gray">{t("region")}</span>
           <button
             onClick={() => updateParam("region", "")}
             className={`tag border ${region === "" ? "bg-brand-blue text-white border-brand-blue" : "border-brand-gray text-brand-gray"}`}
           >
-            All
+            {t("all")}
           </button>
           <button
             onClick={() => updateParam("region", "Indonesia")}
@@ -106,7 +108,7 @@ export default function FilterBar() {
 
         {region === "Indonesia" && (
           <div className="flex gap-2 items-center flex-wrap">
-            <span className="text-xs text-brand-gray">City</span>
+            <span className="text-xs text-brand-gray">{t("city")}</span>
             {INDONESIA_CITIES.map((c) => (
               <button
                 key={c.label}

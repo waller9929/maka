@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getLevel } from "@/lib/level";
+import { useLanguage } from "@/lib/i18n-context";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import type { User } from "@supabase/supabase-js";
 
 type Profile = { points: number; is_admin: boolean; name: string | null };
@@ -32,6 +34,7 @@ function MakaLogo() {
 
 export default function Navbar() {
   const supabase = createClient();
+  const { t } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
 
@@ -81,20 +84,22 @@ export default function Navbar() {
         </Link>
 
         <nav className="flex items-center gap-4 text-sm">
-          <Link href="/board" className="text-white/80 hover:text-white">
-            Board
+          <LanguageSwitcher />
+
+          <Link href="/board" className="tag bg-brand-blueLight text-brand-blueDark">
+            {t("board")}
           </Link>
 
           {profile?.is_admin && (
             <Link href="/leaderboard" className="text-white/80 hover:text-white">
-              Leaderboard
+              {t("leaderboard")}
             </Link>
           )}
 
           {user ? (
             <>
               <Link href="/places/new" className="btn-primary px-3 py-1.5 text-sm">
-                Add a place
+                {t("add_a_place")}
               </Link>
               <Link href="/mypage" className="text-white/80 hover:text-white flex items-center gap-1">
                 <span className="tag bg-brand-blue text-white">
@@ -103,16 +108,16 @@ export default function Navbar() {
               </Link>
               {profile?.is_admin && (
                 <Link href="/admin" className="tag bg-brand-blueLight text-brand-blueDark">
-                  Admin
+                  {t("admin")}
                 </Link>
               )}
               <button onClick={signOut} className="text-white/60 hover:text-white text-xs">
-                Sign out
+                {t("sign_out")}
               </button>
             </>
           ) : (
             <button onClick={signInWithGoogle} className="btn-primary px-3 py-1.5 text-sm">
-              Sign in with Google
+              {t("sign_in_google")}
             </button>
           )}
         </nav>
